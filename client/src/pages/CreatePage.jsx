@@ -108,6 +108,7 @@ const BONUS_RULES = [
 
 // ─── Step 1: Event Setup ───────────────────────────────────────────────────
 function StepEventSetup({ data, onChange }) {
+  const { user } = useAuthStore();
   return (
     <div className="space-y-5">
       {/* Row 1: Name + Max Players side by side */}
@@ -304,6 +305,9 @@ function StepEventSetup({ data, onChange }) {
                 onChange({
                   hostParticipates: e.target.checked,
                   hostGhostMode: false,
+                  ...(e.target.checked && !data.hostPlayerName && user?.username
+                    ? { hostPlayerName: user.username }
+                    : {}),
                 })
               }
             />
@@ -314,54 +318,6 @@ function StepEventSetup({ data, onChange }) {
               <p className="text-xs text-muted mt-0.5">Dein Score zählt mit.</p>
             </div>
           </label>
-
-          {data.hostParticipates && (
-            <div
-              className="col-span-2 sm:col-span-1 sm:col-start-1 flex gap-2 mt-1"
-              style={{ gridColumn: "1 / -1" }}
-            >
-              <button
-                type="button"
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all"
-                style={
-                  !data.hostGhostMode
-                    ? {
-                        background: "rgba(34,211,238,0.15)",
-                        border: "1px solid rgba(34,211,238,0.5)",
-                        color: "#22d3ee",
-                      }
-                    : {
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        color: "rgba(255,255,255,0.35)",
-                      }
-                }
-                onClick={() => onChange({ hostGhostMode: false })}
-              >
-                Score zählt
-              </button>
-              <button
-                type="button"
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all"
-                style={
-                  data.hostGhostMode
-                    ? {
-                        background: "rgba(139,92,246,0.15)",
-                        border: "1px solid rgba(139,92,246,0.5)",
-                        color: "#a78bfa",
-                      }
-                    : {
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        color: "rgba(255,255,255,0.35)",
-                      }
-                }
-                onClick={() => onChange({ hostGhostMode: true })}
-              >
-                Ghost Mode
-              </button>
-            </div>
-          )}
 
           {/* Hide game plan */}
           <label
@@ -414,6 +370,52 @@ function StepEventSetup({ data, onChange }) {
               Blur
             </span>
           </label>
+
+          {/* Score / Ghost toggle — spans full width, only when host plays */}
+          {data.hostParticipates && (
+            <div className="flex gap-2" style={{ gridColumn: "1 / -1" }}>
+              <button
+                type="button"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all"
+                style={
+                  !data.hostGhostMode
+                    ? {
+                        background: "rgba(34,211,238,0.15)",
+                        border: "1px solid rgba(34,211,238,0.5)",
+                        color: "#22d3ee",
+                      }
+                    : {
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        color: "rgba(255,255,255,0.35)",
+                      }
+                }
+                onClick={() => onChange({ hostGhostMode: false })}
+              >
+                Score zählt
+              </button>
+              <button
+                type="button"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all"
+                style={
+                  data.hostGhostMode
+                    ? {
+                        background: "rgba(139,92,246,0.15)",
+                        border: "1px solid rgba(139,92,246,0.5)",
+                        color: "#a78bfa",
+                      }
+                    : {
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        color: "rgba(255,255,255,0.35)",
+                      }
+                }
+                onClick={() => onChange({ hostGhostMode: true })}
+              >
+                Ghost Mode
+              </button>
+            </div>
+          )}
         </div>
 
         {data.hostParticipates && (

@@ -39,7 +39,7 @@ export default function UserPublicProfilePage() {
       ? `${username} | Party Olympiade`
       : "Spieler | Party Olympiade";
     api
-      .get(`/auth/user/${username}`)
+      .get(`/auth/user/${encodeURIComponent(username)}`)
       .then(({ data }) => setProfile(data))
       .catch((err) => {
         if (err.response?.status === 404) setNotFound(true);

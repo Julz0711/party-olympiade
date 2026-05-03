@@ -130,7 +130,7 @@ export default function Scoreboard({
             <span className="flex-1 flex items-center gap-1.5 min-w-0">
               {participant?.username ? (
                 <Link
-                  to={`/user/${participant.username}`}
+                  to={`/user/${encodeURIComponent(participant.username)}`}
                   className={`text-sm font-semibold truncate hover:underline underline-offset-2 ${
                     isMe ? "text-purple-300 hover:text-purple-200" : "text-white/85 hover:text-white"
                   }`}

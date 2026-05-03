@@ -173,7 +173,7 @@ function TradingCard({
                 title="Profil-Link kopieren"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    window.location.origin + "/user/" + user.username,
+                    window.location.origin + "/user/" + encodeURIComponent(user.username),
                   );
                 }}
               >
