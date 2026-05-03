@@ -9,7 +9,6 @@ import WinnerPage from "./pages/WinnerPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import GameLibraryPage from "./pages/GameLibraryPage.jsx";
 import DraftsPage from "./pages/DraftsPage.jsx";
-import ImpressumPage from "./pages/ImpressumPage.jsx";
 import DatenschutzPage from "./pages/DatenschutzPage.jsx";
 import UserPublicProfilePage from "./pages/UserPublicProfilePage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
@@ -19,7 +18,9 @@ function GlobalRejoin() {
   const location = useLocation();
   if (location.pathname.startsWith("/room/")) return null;
   let lastRoom = null;
-  try { lastRoom = JSON.parse(localStorage.getItem("lastRoom")); } catch {}
+  try {
+    lastRoom = JSON.parse(localStorage.getItem("lastRoom"));
+  } catch {}
   if (!lastRoom?.code) return null;
   return <FloatingRoomNav code={lastRoom.code} role={lastRoom.role} />;
 }
@@ -42,7 +43,6 @@ export default function App() {
         <Route path="/room/:code/host" element={<HostRoomPage />} />
         <Route path="/room/:code/winner" element={<WinnerPage />} />
         <Route path="/user/:username" element={<UserPublicProfilePage />} />
-        <Route path="/impressum" element={<ImpressumPage />} />
         <Route path="/datenschutz" element={<DatenschutzPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

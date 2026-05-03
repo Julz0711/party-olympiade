@@ -1065,14 +1065,7 @@ export default function HomePage() {
       {/* ── Footer ── */}
       <footer className="px-6 py-8 text-center border-t border-white/[0.06]">
         <p className="text-white/25 text-xs">
-          © {new Date().getFullYear()} Party Olympiade &nbsp;·&nbsp;{" "}
-          <Link
-            to="/impressum"
-            className="hover:text-white/50 transition-colors underline underline-offset-2"
-          >
-            Impressum
-          </Link>{" "}
-          &nbsp;·&nbsp;{" "}
+          © {new Date().getFullYear()} Party Olympiade &nbsp;·&nbsp;
           <Link
             to="/datenschutz"
             className="hover:text-white/50 transition-colors underline underline-offset-2"
