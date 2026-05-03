@@ -205,15 +205,18 @@ const CARD_CATEGORIES = [
   { Icon: Ghost, label: "Troll", color: "#4ade80", val: 1 },
 ];
 
-function PreviewStars({ value }) {
+function PreviewBar({ value, color }) {
   return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={11}
-          fill={s <= value ? "currentColor" : "none"}
-          className={s <= value ? "text-yellow-400" : "text-white/15"}
+    <div className="flex gap-0.5 flex-1">
+      {Array.from({ length: 5 }, (_, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-sm"
+          style={{
+            height: 5,
+            background: i < value ? color : "rgba(255,255,255,0.08)",
+            boxShadow: i < value ? `0 0 6px ${color}99` : "none",
+          }}
         />
       ))}
     </div>
@@ -758,9 +761,7 @@ export default function HomePage() {
                       <span className="text-[10px] font-semibold text-white/50 w-12 flex-shrink-0">
                         {label}
                       </span>
-                      <div className="flex-1">
-                        <PreviewStars value={val} />
-                      </div>
+                      <PreviewBar value={val} color={color} />
                     </div>
                   ))}
                 </div>

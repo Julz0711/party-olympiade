@@ -314,6 +314,7 @@ export default function ParticipantView() {
                       name={p.name}
                       avatarColor={p.avatarColor ?? null}
                       cardImage={p.cardImage ?? null}
+                      playerCard={p.playerCard ?? null}
                       isMe={isMe}
                       isHost={isHost}
                       fallbackIndex={i}
@@ -328,8 +329,8 @@ export default function ParticipantView() {
                   <div
                     key={`empty-${i}`}
                     style={{
-                      width: 83,
-                      height: 96,
+                      width: 123,
+                      height: 152,
                       border: "1.5px dashed rgba(255,255,255,0.1)",
                       background: "rgba(255,255,255,0.02)",
                       borderRadius: 14,

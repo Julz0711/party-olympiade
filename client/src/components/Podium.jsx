@@ -33,6 +33,7 @@ export default function Podium({ leaderboard = [], participants = [] }) {
                 name={entry.name}
                 avatarColor={participant?.avatarColor ?? null}
                 cardImage={participant?.cardImage ?? null}
+                playerCard={participant?.playerCard ?? null}
                 fallbackIndex={rankIdx}
               />
             </div>

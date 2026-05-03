@@ -21,6 +21,7 @@ function safeUser(user) {
     avatarColor: user.avatarColor ?? 0,
     playerCard: user.playerCard ?? null,
     cardImage: user.cardImage ?? null,
+    bio: user.bio ?? "",
   };
 }
 
@@ -104,7 +105,7 @@ router.patch('/profile', async (req, res) => {
     const user = await User.findById(payload.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const { username, avatarColor, playerCard, cardImage } = req.body;
+    const { username, avatarColor, playerCard, cardImage, bio } = req.body;
 
     if (username !== undefined) {
       const trimmed = String(username).trim().slice(0, 30);
@@ -133,6 +134,9 @@ router.patch('/profile', async (req, res) => {
         if (sum !== 15) return res.status(400).json({ error: 'playerCard values must sum to exactly 15' });
         user.playerCard = { iq, shooter, racing, party, troll };
       }
+    }
+    if (bio !== undefined) {
+      user.bio = String(bio).slice(0, 300);
     }
     if ('cardImage' in req.body) {
       if (cardImage === null) {
@@ -166,6 +170,7 @@ router.get('/user/:username', async (req, res) => {
       avatarColor: user.avatarColor ?? 0,
       playerCard: user.playerCard ?? null,
       cardImage: user.cardImage ?? null,
+      bio: user.bio ?? "",
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });

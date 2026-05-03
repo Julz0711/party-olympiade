@@ -22,7 +22,6 @@ import {
   Car,
   PartyPopper,
   Ghost,
-  Star,
   Share2,
   LogOut,
   Camera,
@@ -75,31 +74,48 @@ const CARD_CATEGORIES = [
 
 const TOTAL_POINTS = 15;
 
-function StarRating({ value, onChange, maxValue = 5, size = 16 }) {
+function StatBar({ value, max = 5, color }) {
   return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => {
-        const filled = star <= value;
-        const clickable = !!onChange && (filled || star <= maxValue);
+    <div className="flex gap-0.5 flex-1">
+      {Array.from({ length: max }, (_, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-sm"
+          style={{
+            height: 6,
+            background: i < value ? color : "rgba(255,255,255,0.08)",
+            boxShadow: i < value ? `0 0 8px ${color}99` : "none",
+            transition: "background 0.15s, box-shadow 0.15s",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StatBarEdit({ value, onChange, max = 5, color, remaining }) {
+  return (
+    <div className="flex gap-0.5 flex-1">
+      {Array.from({ length: max }, (_, i) => {
+        const wouldIncrease = i + 1 > value;
+        const disabled = wouldIncrease && remaining <= 0;
         return (
           <button
-            key={star}
+            key={i}
             type="button"
-            disabled={!clickable}
-            onClick={() => {
-              if (!onChange) return;
-              // click same star → decrease by 1, otherwise set
-              onChange(star === value ? Math.max(0, star - 1) : star);
+            disabled={disabled}
+            className="flex-1 rounded-sm transition-all"
+            style={{
+              height: 7,
+              background: i < value ? color : "rgba(255,255,255,0.1)",
+              cursor: disabled ? "not-allowed" : "pointer",
+              opacity: disabled ? 0.4 : 1,
             }}
-            className="transition-colors disabled:opacity-25"
-            style={{ cursor: clickable ? "pointer" : "default" }}
-          >
-            <Star
-              size={size}
-              fill={filled ? "currentColor" : "none"}
-              className={filled ? "text-yellow-400" : "text-white/20"}
-            />
-          </button>
+            onClick={() => {
+              const newVal = i + 1 === value ? Math.max(0, value - 1) : i + 1;
+              onChange(newVal);
+            }}
+          />
         );
       })}
     </div>
@@ -124,6 +140,8 @@ function TradingCard({
   artImage,
   onUploadImage,
   onRemoveImage,
+  bioInput,
+  setBioInput,
 }) {
   const displayCard = editing ? cardValues : user.playerCard;
   const hasCard = !!user.playerCard;
@@ -134,8 +152,7 @@ function TradingCard({
   const remaining = TOTAL_POINTS - pointsUsed;
   const canSave =
     !editing ||
-    (nameInput.trim().length >= 2 &&
-      (!cardValues || pointsUsed === TOTAL_POINTS));
+    (nameInput.trim().length >= 2 && (!cardValues || pointsUsed === TOTAL_POINTS));
 
   const avatarGrad = AVATAR_GRADIENTS[selectedColor] || AVATAR_GRADIENTS[0];
 
@@ -145,12 +162,12 @@ function TradingCard({
         background: avatarGrad,
         padding: "1.5px",
         borderRadius: "24px",
-        boxShadow: "0 0 80px rgba(0,0,0,0.4), 0 0 40px rgba(255,255,255,0.06)",
+        boxShadow: "0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(236,72,153,0.1), 0 24px 64px rgba(0,0,0,0.5)",
       }}
     >
       <div
         style={{
-          background: "linear-gradient(165deg, #08061a 0%, #0d082a 100%)",
+          background: "radial-gradient(ellipse 130% 55% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 65%), linear-gradient(165deg, #08061a 0%, #0d082a 100%)",
           borderRadius: "23px",
           overflow: "hidden",
         }}
@@ -158,10 +175,7 @@ function TradingCard({
         {/* Top label bar */}
         <div
           className="flex items-center justify-between px-5 py-3"
-          style={{
-            background: "rgba(139,92,246,0.08)",
-            borderBottom: "1px solid rgba(139,92,246,0.15)",
-          }}
+          style={{ background: "rgba(139,92,246,0.08)", borderBottom: "1px solid rgba(139,92,246,0.15)" }}
         >
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400">
             ✦ Player Card
@@ -171,14 +185,24 @@ function TradingCard({
               <button
                 className="p-1.5 rounded-lg text-white/25 hover:text-white/60 transition-colors"
                 title="Profil-Link kopieren"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    window.location.origin + "/user/" + encodeURIComponent(user.username),
-                  );
-                }}
+                onClick={() => navigator.clipboard.writeText(
+                  window.location.origin + "/user/" + encodeURIComponent(user.username)
+                )}
               >
                 <Share2 size={13} />
               </button>
+            )}
+            {editing && cardValues && (
+              <span
+                className="text-[10px] font-black px-2 py-0.5 rounded-lg"
+                style={{
+                  background: remaining === 0 ? "rgba(34,197,94,0.15)" : remaining > 0 ? "rgba(250,204,21,0.15)" : "rgba(239,68,68,0.15)",
+                  color: remaining === 0 ? "#4ade80" : remaining > 0 ? "#facc15" : "#f87171",
+                  border: `1px solid ${remaining === 0 ? "rgba(34,197,94,0.3)" : remaining > 0 ? "rgba(250,204,21,0.3)" : "rgba(239,68,68,0.3)"}`,
+                }}
+              >
+                {remaining > 0 ? `+${remaining}` : remaining} Pts
+              </span>
             )}
             {!editing ? (
               <button
@@ -189,111 +213,65 @@ function TradingCard({
                 <Pencil size={13} />
               </button>
             ) : (
-              <div className="flex items-center gap-2">
-                {cardValues && (
-                  <span
-                    className="text-[10px] font-black px-2 py-0.5 rounded-lg"
-                    style={{
-                      background:
-                        remaining === 0
-                          ? "rgba(34,197,94,0.15)"
-                          : remaining > 0
-                            ? "rgba(250,204,21,0.15)"
-                            : "rgba(239,68,68,0.15)",
-                      color:
-                        remaining === 0
-                          ? "#4ade80"
-                          : remaining > 0
-                            ? "#facc15"
-                            : "#f87171",
-                      border: `1px solid ${remaining === 0 ? "rgba(34,197,94,0.3)" : remaining > 0 ? "rgba(250,204,21,0.3)" : "rgba(239,68,68,0.3)"}`,
-                    }}
-                  >
-                    {remaining > 0 ? `+${remaining}` : remaining} Pts
-                  </span>
-                )}
-                <button
-                  className="p-1.5 rounded-lg text-white/30 hover:text-white/70 transition-colors"
-                  onClick={onCancel}
-                  title="Abbrechen"
-                >
-                  <X size={13} />
-                </button>
-              </div>
+              <button
+                className="p-1.5 rounded-lg text-white/30 hover:text-white/70 transition-colors"
+                onClick={onCancel}
+                title="Abbrechen"
+              >
+                <X size={13} />
+              </button>
             )}
           </div>
         </div>
 
-        {/* Art section */}
+        {/* Art section — full width */}
         <div
           className="relative flex items-center justify-center overflow-hidden"
-          style={{
-            height: "220px",
-            background: artImage ? "transparent" : avatarGrad,
-          }}
+          style={{ height: 200, background: artImage ? "transparent" : avatarGrad }}
         >
           {artImage ? (
-            <img
-              src={artImage}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <img src={artImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <>
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(5,3,15,0.35) 0%, rgba(5,3,15,0.5) 100%)",
-                }}
-              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,3,15,0.2) 0%, rgba(5,3,15,0.55) 100%)" }} />
               <div
                 className="relative z-10 rounded-2xl flex items-center justify-center font-black text-white"
-                style={{
-                  width: 80,
-                  height: 80,
-                  background: "rgba(0,0,0,0.3)",
-                  backdropFilter: "blur(8px)",
-                  border: "2px solid rgba(255,255,255,0.25)",
-                  fontSize: 32,
-                  textShadow: "0 2px 12px rgba(0,0,0,0.5)",
-                }}
+                style={{ width: 76, height: 76, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", border: "2px solid rgba(255,255,255,0.2)", fontSize: 30, textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
               >
                 {user.username[0].toUpperCase()}
               </div>
             </>
           )}
 
-          {/* Edit overlay */}
+          {/* Diagonal shine */}
+          <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 45%, rgba(255,255,255,0.03) 100%)" }} />
+
+          {/* Corner brackets */}
+          {!editing && (
+            <>
+              <div className="absolute top-3 left-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderTop: "1.5px solid rgba(255,255,255,0.3)", borderLeft: "1.5px solid rgba(255,255,255,0.3)", borderTopLeftRadius: 2 }} />
+              <div className="absolute top-3 right-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderTop: "1.5px solid rgba(255,255,255,0.3)", borderRight: "1.5px solid rgba(255,255,255,0.3)", borderTopRightRadius: 2 }} />
+              <div className="absolute bottom-10 left-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderBottom: "1.5px solid rgba(255,255,255,0.15)", borderLeft: "1.5px solid rgba(255,255,255,0.15)", borderBottomLeftRadius: 2 }} />
+              <div className="absolute bottom-10 right-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderBottom: "1.5px solid rgba(255,255,255,0.15)", borderRight: "1.5px solid rgba(255,255,255,0.15)", borderBottomRightRadius: 2 }} />
+            </>
+          )}
+
+          {/* Fade into card background */}
+          <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: 80, background: "linear-gradient(to bottom, transparent 0%, rgb(8,6,26) 100%)" }} />
+
           {editing && (
-            <div
-              className="absolute inset-0 z-20 flex items-center justify-center gap-3"
-              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}
-            >
-              <label
-                className="flex items-center gap-1.5 text-xs font-bold text-white cursor-pointer px-3 py-2 rounded-xl transition-all hover:bg-white/10"
-                style={{ border: "1px solid rgba(255,255,255,0.25)" }}
-              >
+            <div className="absolute inset-0 z-20 flex items-center justify-center gap-3" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}>
+              <label className="flex items-center gap-1.5 text-xs font-bold text-white cursor-pointer px-3 py-2 rounded-xl hover:bg-white/10 transition-all" style={{ border: "1px solid rgba(255,255,255,0.25)" }}>
                 <Camera size={14} />
                 {artImage ? "Ändern" : "Hochladen"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onUploadImage(file);
-                    e.target.value = "";
-                  }}
-                />
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onUploadImage(file);
+                  e.target.value = "";
+                }} />
               </label>
               {artImage && (
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 text-xs font-bold text-pink-300 px-3 py-2 rounded-xl transition-all hover:bg-pink-500/10"
-                  style={{ border: "1px solid rgba(236,72,153,0.35)" }}
-                  onClick={onRemoveImage}
-                >
+                <button type="button" className="flex items-center gap-1.5 text-xs font-bold text-pink-300 px-3 py-2 rounded-xl hover:bg-pink-500/10 transition-all" style={{ border: "1px solid rgba(236,72,153,0.35)" }} onClick={onRemoveImage}>
                   <ImageOff size={14} />
                   Entfernen
                 </button>
@@ -302,115 +280,113 @@ function TradingCard({
           )}
         </div>
 
-        {/* Name + color picker */}
-        <div className="px-5 pt-4 pb-4 text-center">
+        {/* Name */}
+        <div className="px-5 pt-4 pb-2 text-center">
           {editing ? (
             <input
-              className="w-full bg-white/5 border border-purple-500/40 rounded-xl px-3 py-2 text-white font-bold text-lg text-center focus:outline-none focus:border-purple-400 mb-3"
+              className="w-full bg-white/5 border border-purple-500/40 rounded-xl px-3 py-2 text-white font-bold text-lg text-center focus:outline-none focus:border-purple-400"
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
               maxLength={30}
               autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Escape") onCancel();
-              }}
+              onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
             />
           ) : (
-            <h1 className="text-xl font-black text-white mb-3">
-              {user.username}
-            </h1>
+            <h1 className="text-xl font-black text-white" style={{ textShadow: "0 0 24px rgba(139,92,246,0.4)" }}>{user.username}</h1>
           )}
+        </div>
 
-          {/* Color picker — only interactive in edit mode */}
-          <div className="flex items-center justify-center gap-2 flex-wrap">
+        {/* Bio — optional, between name and stats */}
+        {(editing || user.bio) && (
+          <div className="px-5 pb-3">
+            {editing ? (
+              <textarea
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white/70 text-xs resize-none focus:outline-none focus:border-purple-500/40 placeholder-white/20"
+                rows={2}
+                maxLength={120}
+                placeholder="Kurze Bio (max. 2 Zeilen)…"
+                value={bioInput}
+                onChange={(e) => setBioInput(e.target.value)}
+              />
+            ) : (
+              <p
+                className="text-xs text-white/45 leading-relaxed text-center"
+                style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+              >
+                {user.bio}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="mx-5" style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(236,72,153,0.3), transparent)" }} />
+
+        {/* Stats section — full width bars */}
+        <div className="px-5 pt-4 pb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1" style={{ height: 1, background: "linear-gradient(to right, transparent, rgba(139,92,246,0.25))" }} />
+            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Stats</span>
+            <div className="flex-1" style={{ height: 1, background: "linear-gradient(to left, transparent, rgba(139,92,246,0.25))" }} />
+            {!editing && !hasCard && (
+              <button className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors ml-1" onClick={onOpenEdit}>
+                + Erstellen
+              </button>
+            )}
+          </div>
+          <div className="space-y-2.5">
+            {CARD_CATEGORIES.map(({ key, label, Icon, color }) => {
+              const val = displayCard ? (Number(displayCard[key]) || 0) : 0;
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <Icon size={13} style={{ color, flexShrink: 0 }} />
+                  <span className="text-xs font-semibold text-white/50 w-14 flex-shrink-0">{label}</span>
+                  <div className="flex-1">
+                    {editing && cardValues ? (
+                      <StatBarEdit
+                        value={val}
+                        onChange={(v) => onCardChange({ ...cardValues, [key]: v })}
+                        max={5}
+                        color={color}
+                        remaining={remaining}
+                      />
+                    ) : (
+                      <StatBar value={val} max={5} color={color} />
+                    )}
+                  </div>
+                  <span className="text-[11px] font-black text-white/25 w-6 text-right flex-shrink-0">{val}/5</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Color picker — editing only */}
+        {editing && (
+          <div className="px-5 pb-3 flex items-center justify-center gap-2 flex-wrap">
             {AVATAR_GRADIENTS.map((g, i) => (
               <button
                 key={i}
-                title={editing ? `Farbe ${i + 1}` : undefined}
-                disabled={!editing}
-                onClick={() => editing && setSelectedColor(i)}
+                title={`Farbe ${i + 1}`}
+                onClick={() => setSelectedColor(i)}
                 className="transition-all"
                 style={{
                   width: 18,
                   height: 18,
                   borderRadius: "50%",
                   background: g,
-                  outline:
-                    selectedColor === i
-                      ? "2px solid white"
-                      : "2px solid transparent",
+                  outline: selectedColor === i ? "2px solid white" : "2px solid transparent",
                   outlineOffset: 2,
-                  opacity: editing ? 1 : selectedColor === i ? 0.7 : 0.25,
-                  cursor: editing ? "pointer" : "default",
                 }}
               />
             ))}
           </div>
-        </div>
+        )}
 
-        {/* Divider */}
-        <div
-          className="mx-5"
-          style={{
-            height: "1px",
-            background:
-              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(236,72,153,0.3), transparent)",
-          }}
-        />
-
-        {/* Stats section */}
-        <div className="px-5 pt-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
-              Stats
-            </span>
-            {!editing && !hasCard && (
-              <button
-                className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors"
-                onClick={onOpenEdit}
-              >
-                + Karte erstellen
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-2.5">
-            {CARD_CATEGORIES.map(({ key, label, Icon, color }) => {
-              const val = displayCard ? (Number(displayCard[key]) || 0) : 0;
-              const maxVal = editing && cardValues
-                ? val + Math.max(0, remaining)
-                : 5;
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <Icon size={13} style={{ color, flexShrink: 0 }} />
-                  <span className="text-xs font-semibold text-white/50 w-14 flex-shrink-0">
-                    {label}
-                  </span>
-                  <div className="flex-1">
-                    <StarRating
-                      value={val}
-                      onChange={
-                        editing && cardValues
-                          ? (v) => {
-                              onCardChange({ ...cardValues, [key]: v });
-                            }
-                          : undefined
-                      }
-                      maxValue={Math.min(5, maxVal)}
-                      size={15}
-                    />
-                  </div>
-                  <span className="text-[11px] font-black text-white/25 w-6 text-right">
-                    {val}/5
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Edit mode save/cancel */}
-          {editing && (
-            <div className="flex gap-2 mt-5">
+        {/* Edit mode save/cancel + error */}
+        {editing && (
+          <div className="px-5 pb-4">
+            <div className="flex gap-2">
               <button
                 className="btn-primary flex-1 !py-2 text-sm flex items-center justify-center gap-1.5"
                 disabled={!canSave || saving}
@@ -427,26 +403,18 @@ function TradingCard({
                 Abbrechen
               </button>
             </div>
-          )}
-
-          {profileError && (
-            <p className="text-xs text-pink-400 mt-2 text-center">
-              {profileError}
-            </p>
-          )}
-        </div>
+            {profileError && (
+              <p className="text-xs text-pink-400 mt-2 text-center">{profileError}</p>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <div
           className="flex items-center justify-between px-5 py-3"
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.05)",
-            background: "rgba(0,0,0,0.2)",
-          }}
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}
         >
-          <span className="text-[11px] text-white/25 truncate max-w-[60%]">
-            {user.email}
-          </span>
+          <span className="text-[11px] text-white/25 truncate max-w-[60%]">{user.email}</span>
           <button
             className="flex items-center gap-1.5 text-[11px] text-pink-400/60 hover:text-pink-400 transition-colors"
             onClick={logout}
@@ -477,6 +445,7 @@ export default function ProfilePage() {
   const [selectedColor, setSelectedColor] = useState(user?.avatarColor ?? 0);
   const [cardValues, setCardValues] = useState(null);
   const [cardImagePreview, setCardImagePreview] = useState(null);
+  const [bioInput, setBioInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
 
@@ -543,6 +512,7 @@ export default function ProfilePage() {
     // If no playerCard yet, default to 3/3/3/3/3 = 15 (valid budget)
     setCardValues(vals);
     setCardImagePreview(user.cardImage ?? null);
+    setBioInput(user.bio ?? "");
     setProfileError("");
     setEditing(true);
   }
@@ -551,6 +521,7 @@ export default function ProfilePage() {
     setEditing(false);
     setCardValues(null);
     setCardImagePreview(null);
+    setBioInput("");
     setSelectedColor(user.avatarColor ?? 0);
     setProfileError("");
   }
@@ -577,6 +548,9 @@ export default function ProfilePage() {
             return acc;
           }, {});
         }
+      }
+      if (bioInput !== (user.bio ?? "")) {
+        changes.bio = bioInput;
       }
       // Only send cardImage if it changed
       const savedImage = user.cardImage ?? null;
@@ -624,7 +598,7 @@ export default function ProfilePage() {
 
       <div className="max-w-2xl mx-auto space-y-6 animate-slide-up">
         {/* Trading Card */}
-        <div className="mx-auto" style={{ maxWidth: 400 }}>
+        <div className="mx-auto" style={{ maxWidth: 360 }}>
           <TradingCard
             user={user}
             editing={editing}
@@ -646,6 +620,8 @@ export default function ProfilePage() {
               if (b64) setCardImagePreview(b64);
             }}
             onRemoveImage={() => setCardImagePreview(null)}
+            bioInput={bioInput}
+            setBioInput={setBioInput}
           />
         </div>
 

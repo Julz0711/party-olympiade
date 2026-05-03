@@ -11,10 +11,38 @@ const FALLBACK_GRADIENTS = [
   "linear-gradient(135deg, #6366f1, #22d3ee)",
 ];
 
+const COMPACT_STATS = [
+  { key: "iq",      label: "IQ",  color: "#22d3ee" },
+  { key: "shooter", label: "SHO", color: "#ec4899" },
+  { key: "racing",  label: "RAC", color: "#f59e0b" },
+  { key: "party",   label: "PTY", color: "#a78bfa" },
+  { key: "troll",   label: "TRL", color: "#4ade80" },
+];
+
+function MiniStatBar({ value, color }) {
+  return (
+    <div className="w-full flex flex-col-reverse" style={{ gap: 2 }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <div
+          key={i}
+          style={{
+            height: 3,
+            width: "100%",
+            borderRadius: 2,
+            background: i < value ? color : "rgba(255,255,255,0.12)",
+            boxShadow: i < value ? `0 0 5px ${color}99` : "none",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function CompactPlayerCard({
   name,
   avatarColor = null,
   cardImage = null,
+  playerCard = null,
   isMe = false,
   isHost = false,
   fallbackIndex = 0,
@@ -42,16 +70,16 @@ export default function CompactPlayerCard({
     >
       <div
         style={{
-          width: 80,
+          width: 120,
           borderRadius: "13px",
           overflow: "hidden",
           background: "linear-gradient(165deg, #08061a 0%, #0d082a 100%)",
         }}
       >
-        {/* Art section */}
+        {/* Art section — square */}
         <div
           className="relative flex items-center justify-center overflow-hidden"
-          style={{ height: 68, background: cardImage ? "transparent" : grad }}
+          style={{ height: 120, background: cardImage ? "transparent" : grad }}
         >
           {cardImage ? (
             <img
@@ -70,14 +98,14 @@ export default function CompactPlayerCard({
               />
               <span
                 className="relative z-10 font-black text-white select-none"
-                style={{ fontSize: 26, textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}
+                style={{ fontSize: 38, textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}
               >
                 {name?.[0]?.toUpperCase()}
               </span>
             </>
           )}
 
-          {/* Floating HOST pill */}
+          {/* HOST pill */}
           {isHost && (
             <span
               className="absolute top-1.5 left-1.5 z-20 text-[7px] font-black uppercase leading-none px-1.5 rounded-full"
@@ -94,13 +122,13 @@ export default function CompactPlayerCard({
             </span>
           )}
 
-          {/* Floating DU pill */}
+          {/* DU pill */}
           {isMe && (
             <span
               className="absolute top-1.5 z-20 text-[7px] font-black uppercase leading-none px-1.5 rounded-full"
               style={{
-                right: isHost ? "auto" : "1.5px",
-                left: isHost ? "auto" : "1.5px",
+                right: isHost ? "1.5px" : undefined,
+                left: isHost ? undefined : "1.5px",
                 background: "rgba(236,72,153,0.88)",
                 color: "white",
                 backdropFilter: "blur(4px)",
@@ -122,6 +150,17 @@ export default function CompactPlayerCard({
               boxShadow: "0 0 6px rgba(34,197,94,0.5)",
             }}
           />
+
+          {/* Fade into card background when stats are shown */}
+          {playerCard && (
+            <div
+              className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+              style={{
+                height: 24,
+                background: "linear-gradient(to bottom, transparent, #08061a)",
+              }}
+            />
+          )}
         </div>
 
         {/* Name section */}
@@ -130,12 +169,37 @@ export default function CompactPlayerCard({
           style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
         >
           <span
-            className="block text-[10px] font-bold text-white truncate leading-tight"
+            className="block text-[11px] font-bold text-white truncate leading-tight"
             title={name}
           >
             {name}
           </span>
         </div>
+
+        {/* Stats section */}
+        {playerCard && (
+          <div
+            className="px-2 pb-2"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+          >
+            <div className="flex gap-1 pt-1.5">
+              {COMPACT_STATS.map(({ key, label, color }) => {
+                const val = Number(playerCard[key]) || 0;
+                return (
+                  <div key={key} className="flex flex-col flex-1">
+                    <MiniStatBar value={val} color={color} />
+                    <span
+                      className="text-white/40 font-bold mt-0.5 text-center"
+                      style={{ fontSize: 7, letterSpacing: "0.02em" }}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -83,6 +83,7 @@ function Slide({ olympic, slideIndex, totalSlides }) {
               name={p.name}
               avatarColor={p.avatarColor ?? null}
               cardImage={p.cardImage ?? null}
+              playerCard={p.playerCard ?? null}
               fallbackIndex={i}
             />
           ))}

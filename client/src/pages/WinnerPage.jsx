@@ -250,6 +250,7 @@ export default function WinnerPage() {
                     name={entry.name}
                     avatarColor={p?.avatarColor ?? null}
                     cardImage={p?.cardImage ?? null}
+                    playerCard={p?.playerCard ?? null}
                     fallbackIndex={i}
                   />
                 );

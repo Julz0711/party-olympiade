@@ -544,6 +544,7 @@ export default function HostRoomPage() {
                   name={hostName || "Host"}
                   avatarColor={hostUser?.avatarColor ?? null}
                   cardImage={hostUser?.cardImage ?? null}
+                  playerCard={hostUser?.playerCard ?? null}
                   isHost={true}
                   fallbackIndex={0}
                 />
@@ -563,6 +564,7 @@ export default function HostRoomPage() {
                         name={p.name}
                         avatarColor={p.avatarColor ?? null}
                         cardImage={p.cardImage ?? null}
+                        playerCard={p.playerCard ?? null}
                         fallbackIndex={i + 1}
                       />
                       {/* Kick button on hover */}
@@ -589,8 +591,8 @@ export default function HostRoomPage() {
                     key={`empty-${i}`}
                     className="flex items-center justify-center text-white/20 text-2xl font-light"
                     style={{
-                      width: 83,
-                      height: 96,
+                      width: 123,
+                      height: 152,
                       border: "1.5px dashed rgba(255,255,255,0.1)",
                       background: "rgba(255,255,255,0.02)",
                       borderRadius: 14,

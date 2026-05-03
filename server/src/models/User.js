@@ -40,6 +40,7 @@ const UserSchema = new mongoose.Schema(
       default: null,
     },
     cardImage: { type: String, default: null },
+    bio: { type: String, default: "", maxlength: 300, trim: true },
   },
   { timestamps: true }
 );
