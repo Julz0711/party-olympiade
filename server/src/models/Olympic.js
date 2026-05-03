@@ -17,6 +17,7 @@ const ParticipantSchema = new mongoose.Schema({
   stats: { type: StatSchema, default: () => ({}) },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   // Card display data — snapshotted from User profile on join
+  username: { type: String, default: null },
   avatarColor: { type: Number, default: null },
   cardImage: { type: String, default: null },
   playerCard: {

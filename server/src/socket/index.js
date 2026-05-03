@@ -61,10 +61,11 @@ export function initSocket(io) {
             if (hostEntry) {
               try {
                 const userDoc = await User.findById(userId)
-                  .select("avatarColor cardImage playerCard")
+                  .select("username avatarColor cardImage playerCard")
                   .lean();
                 if (userDoc) {
                   hostEntry.userId = userId;
+                  hostEntry.username = userDoc.username ?? null;
                   hostEntry.avatarColor = userDoc.avatarColor ?? 0;
                   hostEntry.cardImage = userDoc.cardImage ?? null;
                   hostEntry.playerCard = userDoc.playerCard ?? null;
@@ -89,9 +90,10 @@ export function initSocket(io) {
               if (userId) {
                 try {
                   const userDoc = await User.findById(userId)
-                    .select("avatarColor cardImage playerCard")
+                    .select("username avatarColor cardImage playerCard")
                     .lean();
                   if (userDoc) {
+                    participantData.username = userDoc.username ?? null;
                     participantData.avatarColor = userDoc.avatarColor ?? 0;
                     participantData.cardImage = userDoc.cardImage ?? null;
                     participantData.playerCard = userDoc.playerCard ?? null;
