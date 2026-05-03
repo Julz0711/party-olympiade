@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import CreatePage from "./pages/CreatePage.jsx";
@@ -12,6 +12,7 @@ import DraftsPage from "./pages/DraftsPage.jsx";
 import ImpressumPage from "./pages/ImpressumPage.jsx";
 import DatenschutzPage from "./pages/DatenschutzPage.jsx";
 import UserPublicProfilePage from "./pages/UserPublicProfilePage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 import FloatingRoomNav from "./components/ui/FloatingRoomNav.jsx";
 
 function GlobalRejoin() {
@@ -43,7 +44,7 @@ export default function App() {
         <Route path="/user/:username" element={<UserPublicProfilePage />} />
         <Route path="/impressum" element={<ImpressumPage />} />
         <Route path="/datenschutz" element={<DatenschutzPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
