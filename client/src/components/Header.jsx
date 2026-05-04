@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
 import AuthModal from "./AuthModal.jsx";
-import { ChevronDown, User, LogOut, Medal, FileText } from "lucide-react";
+import { ChevronDown, User, LogOut, Medal, FileText, Shield, Crown } from "lucide-react";
 
 export const AVATAR_GRADIENTS = [
   "linear-gradient(135deg, #8b5cf6, #ec4899)", // purple → pink
@@ -157,6 +157,32 @@ export default function Header() {
                       <FileText size={14} className="text-white/50 shrink-0" />
                       Entwürfe
                     </button>
+
+                    {(user.role === "moderator" || user.role === "admin") && (
+                      <button
+                        className="w-full text-left px-3 py-2.5 text-sm text-purple-300 hover:bg-purple-500/10 transition-colors flex items-center gap-2.5"
+                        onClick={() => {
+                          navigate("/moderation");
+                          setShowMenu(false);
+                        }}
+                      >
+                        <Shield size={14} className="shrink-0" />
+                        Moderation
+                      </button>
+                    )}
+
+                    {user.role === "admin" && (
+                      <button
+                        className="w-full text-left px-3 py-2.5 text-sm text-pink-300 hover:bg-pink-500/10 transition-colors flex items-center gap-2.5"
+                        onClick={() => {
+                          navigate("/admin");
+                          setShowMenu(false);
+                        }}
+                      >
+                        <Crown size={14} className="shrink-0" />
+                        Admin Panel
+                      </button>
+                    )}
 
                     {/* Sign out — always visible */}
                     <div className="border-t border-white/[0.06]">

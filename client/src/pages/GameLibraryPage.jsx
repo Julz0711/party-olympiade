@@ -19,6 +19,9 @@ import {
   Shield,
   BookOpen,
   Gamepad2,
+  CheckCircle,
+  XCircle,
+  Hourglass,
 } from "lucide-react";
 
 const DEFAULT_ADDONS = {
@@ -71,6 +74,24 @@ function RulesDisplay({ rules }) {
         </li>
       )}
     </ul>
+  );
+}
+
+function StatusBadge({ status, rejectionReason }) {
+  if (status === "approved") return null;
+  if (status === "pending")
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-yellow-500/15 text-yellow-400">
+        <Hourglass size={9} /> Ausstehend
+      </span>
+    );
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400"
+      title={rejectionReason || "Abgelehnt"}
+    >
+      <XCircle size={9} /> Abgelehnt
+    </span>
   );
 }
 
@@ -265,7 +286,7 @@ export default function GameLibraryPage() {
                 </>
               ) : (
                 <>
-                  <Plus size={14} /> Preset einreichen
+                  <Plus size={14} /> {(user?.role === "moderator" || user?.role === "admin") ? "Preset hinzufügen" : "Preset einreichen"}
                 </>
               )}
             </button>
@@ -446,7 +467,9 @@ export default function GameLibraryPage() {
                   : "Einreichen…"
                 : editingPreset
                   ? "Änderungen speichern"
-                  : "In Bibliothek einreichen"}
+                  : (user?.role === "moderator" || user?.role === "admin")
+                    ? "In Bibliothek hinzufügen"
+                    : "Zur Überprüfung einreichen"}
             </button>
           </div>
         )}
@@ -622,13 +645,16 @@ export default function GameLibraryPage() {
                                 <Clock size={10} /> {formatMinutes(preset.estimatedMinutes)}
                               </span>
                             )}
+                            <StatusBadge status={preset.status} rejectionReason={preset.rejectionReason} />
                           </div>
                         </div>
-                        {isOwner && (
+                        {(isOwner || (user?.role === "moderator" || user?.role === "admin")) && (
                           <div className="flex items-center gap-1 shrink-0">
-                            <button className="p-2 rounded-lg text-purple-400/50 hover:text-purple-400 hover:bg-purple-500/15 transition-colors" onClick={() => startEdit(preset)} title="Bearbeiten">
-                              <Pencil size={15} />
-                            </button>
+                            {isOwner && (
+                              <button className="p-2 rounded-lg text-purple-400/50 hover:text-purple-400 hover:bg-purple-500/15 transition-colors" onClick={() => startEdit(preset)} title="Bearbeiten">
+                                <Pencil size={15} />
+                              </button>
+                            )}
                             {confirmDelete === preset._id ? (
                               <div className="flex items-center gap-1">
                                 <button className="text-xs px-2.5 py-1.5 rounded-lg bg-pink-500/20 text-pink-400 hover:bg-pink-500/30 transition-colors font-semibold" onClick={() => handleDelete(preset._id)} disabled={deleting === preset._id}>
@@ -646,6 +672,13 @@ export default function GameLibraryPage() {
                           </div>
                         )}
                       </div>
+                      {preset.status === "rejected" && preset.rejectionReason && (isOwner || user?.role === "moderator" || user?.role === "admin") && (
+                        <div className="px-4 pb-2">
+                          <p className="text-xs text-red-400/80 bg-red-500/10 rounded-lg px-3 py-2">
+                            <span className="font-bold">Ablehnungsgrund:</span> {preset.rejectionReason}
+                          </p>
+                        </div>
+                      )}
                       {preset.rules && <div className="px-4 pb-3"><RulesDisplay rules={preset.rules} /></div>}
                       <div className="flex items-center gap-4 px-4 py-2.5 flex-wrap" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.12)" }}>
                         <span className="text-xs text-white/25">von {preset.createdByUsername}</span>
@@ -734,18 +767,21 @@ export default function GameLibraryPage() {
                                 {formatMinutes(preset.estimatedMinutes)}
                               </span>
                             )}
+                            <StatusBadge status={preset.status} rejectionReason={preset.rejectionReason} />
                           </div>
                         </div>
-                        {/* Owner action buttons */}
-                        {isOwner && (
+                        {/* Owner / mod action buttons */}
+                        {(isOwner || user?.role === "moderator" || user?.role === "admin") && (
                           <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              className="p-2 rounded-lg text-purple-400/50 hover:text-purple-400 hover:bg-purple-500/15 transition-colors"
-                              onClick={() => startEdit(preset)}
-                              title="Bearbeiten"
-                            >
-                              <Pencil size={15} />
-                            </button>
+                            {isOwner && (
+                              <button
+                                className="p-2 rounded-lg text-purple-400/50 hover:text-purple-400 hover:bg-purple-500/15 transition-colors"
+                                onClick={() => startEdit(preset)}
+                                title="Bearbeiten"
+                              >
+                                <Pencil size={15} />
+                              </button>
+                            )}
                             {confirmDelete === preset._id ? (
                               <div className="flex items-center gap-1">
                                 <button
@@ -774,6 +810,15 @@ export default function GameLibraryPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Rejection reason */}
+                      {preset.status === "rejected" && preset.rejectionReason && (isOwner || user?.role === "moderator" || user?.role === "admin") && (
+                        <div className="px-4 pb-2">
+                          <p className="text-xs text-red-400/80 bg-red-500/10 rounded-lg px-3 py-2">
+                            <span className="font-bold">Ablehnungsgrund:</span> {preset.rejectionReason}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Rules bullet list */}
                       {preset.rules && (

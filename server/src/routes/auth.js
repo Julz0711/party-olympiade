@@ -10,7 +10,7 @@ const JWT_EXPIRES = '7d';
 const MAX_IMAGE_BYTES = 600_000; // ~450 KB actual image after base64
 
 function signToken(user) {
-  return jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  return jwt.sign({ id: user._id, username: user.username, role: user.role ?? 'user' }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 }
 
 function safeUser(user) {
@@ -22,7 +22,21 @@ function safeUser(user) {
     playerCard: user.playerCard ?? null,
     cardImage: user.cardImage ?? null,
     bio: user.bio ?? "",
+    role: user.role ?? 'user',
   };
+}
+
+function requireAdmin(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const payload = jwt.verify(auth.slice(7), JWT_SECRET);
+    if (payload.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 }
 
 // POST /api/auth/register
@@ -172,6 +186,47 @@ router.get('/user/:username', async (req, res) => {
       cardImage: user.cardImage ?? null,
       bio: user.bio ?? "",
     });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/auth/admin/users — list all users (admin only)
+router.get('/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const { search = '' } = req.query;
+    const query = search
+      ? { username: { $regex: search, $options: 'i' } }
+      : {};
+    const users = await User.find(query)
+      .select('-password -cardImage -playerCard')
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    res.json(users.map((u) => ({ ...safeUser(u), email: u.email, createdAt: u.createdAt })));
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PATCH /api/auth/admin/users/:id/role — set user role (admin only)
+router.patch('/admin/users/:id/role', requireAdmin, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['user', 'moderator', 'admin'].includes(role))
+      return res.status(400).json({ error: 'Invalid role' });
+
+    if (String(req.params.id) === String(req.user.id))
+      return res.status(400).json({ error: 'Cannot change your own role' });
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true }
+    ).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ user: safeUser(user) });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

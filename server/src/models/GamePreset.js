@@ -24,6 +24,12 @@ const GamePresetSchema = new mongoose.Schema(
       required: true,
     },
     createdByUsername: { type: String, required: true, trim: true },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    rejectionReason: { type: String, default: "" },
   },
   { timestamps: true },
 );

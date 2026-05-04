@@ -41,8 +41,7 @@ import {
 
 const FEATURES = [
   {
-    Icon: Library,
-    iconColor: "text-pink-400",
+    image: "/assets/Erklärung_1.png",
     title: "Spiele-Bibliothek",
     desc: "Vorgefertigte Presets oder eigene Spiele mit Regeln, Modus und Dauer.",
     color: "from-pink-500/20 to-purple-500/10",
@@ -50,8 +49,7 @@ const FEATURES = [
     glow: "rgba(236,72,153,0.15)",
   },
   {
-    Icon: Users,
-    iconColor: "text-cyan-400",
+    image: "/assets/Erklärung_2.png",
     title: "Bis zu 50 Spieler",
     desc: "FFA oder Teams – Lobby per 4-stelligem Code, Spieler joinen in Sekunden.",
     color: "from-cyan-500/20 to-blue-500/10",
@@ -59,8 +57,7 @@ const FEATURES = [
     glow: "rgba(34,211,238,0.15)",
   },
   {
-    Icon: Crown,
-    iconColor: "text-yellow-400",
+    image: "/assets/Erklärung_3.png",
     title: "Live-Leaderboard",
     desc: "Punkte werden in Echtzeit synchronisiert – jeder sieht den aktuellen Stand.",
     color: "from-yellow-500/20 to-orange-500/10",
@@ -68,8 +65,7 @@ const FEATURES = [
     glow: "rgba(250,204,21,0.15)",
   },
   {
-    Icon: Settings,
-    iconColor: "text-purple-400",
+    image: "/assets/Erklärung_4.png",
     title: "Voll konfigurierbar",
     desc: "3 Punktsysteme, 4 Bonus-Regeln, Tiebreaker, Host-Modi – alles deine Wahl.",
     color: "from-purple-500/20 to-pink-500/10",
@@ -77,8 +73,7 @@ const FEATURES = [
     glow: "rgba(139,92,246,0.15)",
   },
   {
-    Icon: Trophy,
-    iconColor: "text-green-400",
+    image: "/assets/Erklärung_5.png",
     title: "Champion-Show",
     desc: "Animierter Winner-Screen, Stats-Tracking, Verlauf in deinem Profil.",
     color: "from-green-500/20 to-cyan-500/10",
@@ -236,94 +231,116 @@ export default function HomePage() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* ── HERO ──────────────────────────────────────────────── */}
-      <section className="relative min-h-[calc(100vh-56px)] flex items-center justify-center px-6 py-20 text-center overflow-hidden">
-        {/* Centered background glows */}
+      <section
+        className="relative overflow-hidden min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]"
+      >
+        {/* Full-bleed background: Banner image anchored left */}
+        <img
+          src="/assets/Banner_1.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: "left center" }}
+        />
+
+        {/* Fade-to-right overlay — image fades into the page background */}
         <div
-          className="pointer-events-none absolute inset-0"
+          className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 70% 55% at 50% 40%, rgba(139,92,246,0.18) 0%, rgba(236,72,153,0.10) 40%, transparent 70%)",
+              "linear-gradient(to right, rgba(7,7,20,0) 20%, rgba(7,7,20,0.55) 42%, rgba(7,7,20,0.88) 58%, rgba(7,7,20,0.97) 72%, rgba(7,7,20,1) 85%)",
           }}
         />
+
+        {/* Bottom fade so the section merges into the next section */}
         <div
-          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10"
-          style={{ border: "1.5px solid rgba(139,92,246,0.6)" }}
-        />
-        <div
-          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full opacity-10"
-          style={{ border: "1.5px solid rgba(236,72,153,0.5)" }}
-        />
-        <div
-          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full opacity-10"
-          style={{ border: "1.5px solid rgba(34,211,238,0.4)" }}
+          className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+          style={{
+            background: "linear-gradient(to top, rgba(7,7,20,1), transparent)",
+          }}
         />
 
-        <div className="relative z-10 animate-slide-up max-w-3xl w-full">
-          {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-pink-500/40 bg-pink-500/10 text-pink-300 text-xs font-bold uppercase tracking-widest mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
-            Die ultimative Party Challenge
-          </div>
+        {/* Dynamic purple/pink glow behind the text area */}
+        <div
+          className="absolute inset-y-0 right-0 w-2/3 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 90% at 80% 45%, rgba(139,92,246,0.22) 0%, rgba(236,72,153,0.12) 50%, transparent 75%)",
+          }}
+        />
 
-          {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight leading-[1.0] mb-6">
-            <span className="text-white">SPIELE.</span>
-            <br />
-            <span
-              style={{
-                background:
-                  "linear-gradient(90deg, #ec4899 0%, #8b5cf6 50%, #22d3ee 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              PUNKTE.
-            </span>
-            <br />
-            <span className="text-white">WERDE</span>{" "}
-            <span
-              style={{
-                background: "linear-gradient(90deg, #facc15, #f97316)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              CHAMPION.
-            </span>
-          </h1>
+        {/* Text content — right side, vertically centred */}
+        <div
+          className="relative z-10 flex items-center justify-end min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]"
+        >
+          <div className="w-full sm:w-[60%] lg:w-[52%] px-6 sm:px-10 lg:px-14 xl:px-20 py-10 animate-slide-up">
 
-          <p className="text-white/55 text-base sm:text-lg leading-relaxed mb-10 max-w-xl mx-auto">
-            Erstelle deine eigene Olympiade, lade die Crew per 4-stelligem Code
-            ein, und wir tracken Punkte, Tiebreaker und den Champion für dich –
-            in Echtzeit.
-          </p>
+            {/* Pill badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-pink-500/50 bg-pink-500/12 text-pink-300 text-[10px] font-black uppercase tracking-[0.2em] mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+              Die ultimative Party Challenge
+            </div>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button
-              className="btn-primary !px-8 !py-4 !rounded-2xl text-base gap-3 shadow-[0_0_50px_rgba(236,72,153,0.35)]"
-              onClick={() => navigate("/create")}
-            >
-              <Rocket size={18} />
-              <div className="text-left">
-                <div className="font-black">Olympiade erstellen</div>
-                <div className="text-xs font-normal opacity-70">
-                  In 2 Minuten startbereit
+            {/* Headline — large, tight */}
+            <h1 className="font-black tracking-tight leading-[0.95] mb-4"
+              style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}>
+              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">SPIELE.</span>
+              <br />
+              <span
+                style={{
+                  background: "linear-gradient(90deg, #ec4899, #8b5cf6, #22d3ee)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 0 24px rgba(139,92,246,0.6))",
+                }}
+              >
+                PUNKTE.
+              </span>
+              <br />
+              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">WERDE{" "}</span>
+              <span
+                style={{
+                  background: "linear-gradient(90deg, #facc15, #f97316)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 0 20px rgba(250,204,21,0.55))",
+                }}
+              >
+                CHAMPION.
+              </span>
+            </h1>
+
+            <p className="text-white/60 text-sm leading-relaxed mb-7 max-w-xs">
+              Erstelle deine eigene Olympiade, lade die Crew per 4-stelligem Code
+              ein, und wir tracken Punkte, Tiebreaker und den Champion für dich –
+              in Echtzeit.
+            </p>
+
+            {/* CTA buttons */}
+            <div className="flex flex-wrap gap-3">
+              <button
+                className="btn-primary !px-6 !py-3 !rounded-2xl text-sm gap-2.5"
+                style={{ boxShadow: "0 0 40px rgba(236,72,153,0.5), 0 0 80px rgba(139,92,246,0.25)" }}
+                onClick={() => navigate("/create")}
+              >
+                <Rocket size={15} />
+                <div className="text-left">
+                  <div className="font-black text-sm">Olympiade erstellen</div>
+                  <div className="text-[11px] font-normal opacity-70">In 2 Minuten startbereit</div>
                 </div>
-              </div>
-            </button>
-            <button
-              className="btn-secondary !px-8 !py-4 !rounded-2xl text-base gap-3 !border-cyan-500/60 !text-cyan-300 hover:!bg-cyan-500/10"
-              onClick={() => navigate("/join")}
-            >
-              <Users size={18} />
-              <div className="text-left">
-                <div className="font-black">Lobby beitreten</div>
-                <div className="text-xs font-normal opacity-70">
-                  Mit 4-stelligem Code
+              </button>
+              <button
+                className="btn-secondary !px-6 !py-3 !rounded-2xl text-sm gap-2.5 !border-cyan-500/70 !text-cyan-300 hover:!bg-cyan-500/15"
+                style={{ boxShadow: "0 0 30px rgba(34,211,238,0.2)" }}
+                onClick={() => navigate("/join")}
+              >
+                <Users size={15} />
+                <div className="text-left">
+                  <div className="font-black text-sm">Lobby beitreten</div>
+                  <div className="text-[11px] font-normal opacity-70">Mit 4-stelligem Code</div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -351,25 +368,23 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
-          {FEATURES.map(
-            ({ Icon, iconColor, title, desc, color, border, glow }) => (
-              <div
-                key={title}
-                className={`relative rounded-2xl p-5 border bg-gradient-to-br ${color} ${border} flex flex-col items-center text-center gap-3 transition-transform duration-200 hover:scale-105 hover:-translate-y-1`}
-                style={{ boxShadow: `0 8px 32px ${glow}` }}
-              >
-                <div className={iconColor}>
-                  <Icon size={36} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-sm mb-1">{title}</h3>
-                  <p className="text-xs text-white/50 leading-relaxed">
-                    {desc}
-                  </p>
-                </div>
+          {FEATURES.map(({ image, title, desc, color, border, glow }) => (
+            <div
+              key={title}
+              className={`relative rounded-2xl pt-1 pb-3 px-4 border bg-gradient-to-br ${color} ${border} flex flex-col items-center text-center gap-0 transition-transform duration-200 hover:scale-105 hover:-translate-y-1`}
+              style={{ boxShadow: `0 8px 32px ${glow}` }}
+            >
+              <img
+                src={image}
+                alt={title}
+                className="w-36 h-36 object-contain"
+              />
+              <div>
+                <h3 className="font-bold text-white text-sm mb-1">{title}</h3>
+                <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
               </div>
-            ),
-          )}
+            </div>
+          ))}
         </div>
       </section>
 

@@ -1981,20 +1981,37 @@ export default function CreatePage() {
           )}
 
           {step < STEPS.length - 1 ? (
-            <button
-              className="btn-primary !px-14 !py-3.5 !rounded-2xl font-black tracking-widest text-base"
-              style={
-                canProceed()
-                  ? { boxShadow: "0 0 40px rgba(236,72,153,0.4)" }
-                  : undefined
-              }
-              onClick={() => setStep((s) => s + 1)}
-              disabled={!canProceed()}
-            >
-              <span className="flex items-center gap-2">
-                WEITER <ArrowRight size={16} />
-              </span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                className="btn-secondary !px-4 !py-2.5 !rounded-xl font-bold text-sm"
+                onClick={save}
+                disabled={loading || !eventData.name.trim()}
+                title="Als Entwurf speichern"
+              >
+                {loading ? (
+                  "…"
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <Save size={14} />
+                    Entwurf
+                  </span>
+                )}
+              </button>
+              <button
+                className="btn-primary !px-14 !py-3.5 !rounded-2xl font-black tracking-widest text-base"
+                style={
+                  canProceed()
+                    ? { boxShadow: "0 0 40px rgba(236,72,153,0.4)" }
+                    : undefined
+                }
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canProceed()}
+              >
+                <span className="flex items-center gap-2">
+                  WEITER <ArrowRight size={16} />
+                </span>
+              </button>
+            </div>
           ) : isEditMode ? (
             <div className="flex items-center gap-3">
               <button

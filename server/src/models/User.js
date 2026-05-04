@@ -41,6 +41,11 @@ const UserSchema = new mongoose.Schema(
     },
     cardImage: { type: String, default: null },
     bio: { type: String, default: "", maxlength: 300, trim: true },
+    role: {
+      type: String,
+      enum: ["user", "moderator", "admin"],
+      default: "user",
+    },
   },
   { timestamps: true }
 );
