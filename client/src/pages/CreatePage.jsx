@@ -1841,15 +1841,9 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-[calc(100vh-60px)] flex flex-col">
       {/* ── Page header ── */}
-      <div className="relative flex items-center justify-center px-4 pt-8 pb-6">
-        <button
-          className="absolute left-4 btn-ghost !px-3 !py-2 text-sm flex items-center gap-1.5"
-          onClick={() => navigate(isEditMode ? "/profile" : "/")}
-        >
-          <ArrowLeft size={14} /> Zurück
-        </button>
+      <div className="flex-grow relative flex items-end justify-center px-4 pt-8 pb-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-1">
             <Medal size={26} className="text-pink-400" />
@@ -1875,7 +1869,7 @@ export default function CreatePage() {
       </div>
 
       {/* ── Step progress ── */}
-      <div className="flex items-start justify-center gap-0 px-4 mb-8">
+      <div className="flex items-start justify-center gap-0 px-4 mt-4 mb-12">
         {STEPS.map((label, i) => (
           <Fragment key={label}>
             <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
@@ -1955,23 +1949,19 @@ export default function CreatePage() {
 
       {/* ── Sticky bottom nav ── */}
       <div
-        className="fixed bottom-0 left-0 right-0 px-4 pt-6 pb-4 z-10"
+        className="px-4 pt-6 pb-4 z-10"
         style={{
           background:
             "linear-gradient(to top, rgba(7,7,20,0.97) 55%, transparent)",
         }}
       >
-        <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto mb-3">
-          {step > 0 ? (
-            <button
-              className="btn-secondary !px-6 flex items-center gap-1.5"
-              onClick={() => setStep((s) => s - 1)}
-            >
-              <ArrowLeft size={14} /> Zurück
-            </button>
-          ) : (
-            <div />
-          )}
+        <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto pt-8 mb-3">
+          <button
+            className="btn-secondary !px-4 !py-2.5 !rounded-xl font-bold text-sm"
+            onClick={() => navigate(isEditMode ? "/profile" : "/")}
+          >
+            <X size={14} /> Abbrechen
+          </button>
 
           {/* Center: game count for step 2 */}
           {step === 1 && (
@@ -1997,6 +1987,20 @@ export default function CreatePage() {
                   </span>
                 )}
               </button>
+
+              <div>
+                {step > 0 ? (
+                  <button
+                    className="btn-secondary !px-4 !py-2.5 !rounded-xl font-bold text-sm"
+                    onClick={() => setStep((s) => s - 1)}
+                  >
+                    <ArrowLeft size={14} /> Zurück
+                  </button>
+                ) : (
+                  <div />
+                )}
+              </div>
+
               <button
                 className="btn-primary !px-14 !py-3.5 !rounded-2xl font-black tracking-widest text-base"
                 style={
@@ -2089,7 +2093,7 @@ export default function CreatePage() {
         </div>
 
         {/* Step dots */}
-        <div className="flex justify-center gap-2">
+        <div className="flex justify-center gap-2 pb-8">
           {STEPS.map((_, i) => (
             <div
               key={i}

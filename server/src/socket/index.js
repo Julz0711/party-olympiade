@@ -17,6 +17,13 @@ export function initSocket(io) {
     console.log(`Socket connected: ${socket.id}`);
 
     /**
+     * Helper: check if a participant is a host or co-host
+     */
+    const isHostOrCoHost = (participant) => {
+      return participant && (participant.role === 'host' || participant.role === 'co-host');
+    };
+
+    /**
      * join-room — join a room by Olympic code
      * payload: { code, name, isHost, hostToken? }
      */
@@ -138,7 +145,7 @@ export function initSocket(io) {
     );
 
     /**
-     * start-olympic — host starts the event (lobby → active) and triggers intro for all
+     * start-olympic — host or co-host starts the event (lobby → active) and triggers intro for all
      * payload: { code, hostToken }
      */
     socket.on("start-olympic", async ({ code, hostToken }) => {
@@ -181,7 +188,7 @@ export function initSocket(io) {
     });
 
     /**
-     * navigate — host moves to next/prev game
+     * navigate — host or co-host moves to next/prev game
      * payload: { code, direction, hostToken }
      */
     socket.on("navigate", async ({ code, direction, hostToken }) => {
@@ -214,7 +221,7 @@ export function initSocket(io) {
     });
 
     /**
-     * submit-score — host submits result for a game
+     * submit-score — host or co-host submits result for a game
      * payload: { code, result: { gameId, placements, teams }, hostToken }
      */
     socket.on("submit-score", async ({ code, result, hostToken }) => {
@@ -325,7 +332,7 @@ export function initSocket(io) {
     });
 
     /**
-     * tiebreaker-resolve — host picks the winner
+     * tiebreaker-resolve — host or co-host picks the winner
      * payload: { code, hostToken, gameId, winner }
      */
     socket.on("tiebreaker-resolve", async ({ code, hostToken, gameId, winner }) => {
@@ -373,7 +380,7 @@ export function initSocket(io) {
     });
 
     /**
-     * finish-olympic — host ends the event
+     * finish-olympic — host or co-host ends the event
      * payload: { code, hostToken }
      */
     socket.on("finish-olympic", async ({ code, hostToken }) => {
@@ -407,7 +414,7 @@ export function initSocket(io) {
     });
 
     /**
-     * revert-to-draft — host reverts lobby back to draft
+     * revert-to-draft — host or co-host reverts lobby back to draft
      * payload: { code, hostToken }
      */
     socket.on("revert-to-draft", async ({ code, hostToken }) => {
@@ -503,7 +510,7 @@ export function initSocket(io) {
     });
 
     /**
-     * update-settings — host edits event settings during active olympic
+     * update-settings — host or co-host edits event settings during active olympic
      * payload: { code, hostToken, settings }
      * settings: { name, maxPlayers, scoringMode, tieRule, extraRules,
      *             hostParticipates, hostPlayerName, hideGamePlan }
@@ -583,7 +590,7 @@ export function initSocket(io) {
     });
 
     /**
-     * toggle-game-plan — host shows/hides game titles for participants
+     * toggle-game-plan — host or co-host shows/hides game titles for participants
      * payload: { code, hostToken, hide }
      */
     socket.on("toggle-game-plan", async ({ code, hostToken, hide }) => {
@@ -609,7 +616,7 @@ export function initSocket(io) {
     });
 
     /**
-     * edit-games — host reorders, removes, or adds games during active olympic
+     * edit-games — host or co-host reorders, removes, or adds games during active olympic
      * payload: { code, hostToken, games }
      * Games with an existing _id are kept as-is; games without _id are new entries.
      */
@@ -653,7 +660,7 @@ export function initSocket(io) {
     });
 
     /**
-     * kick-player — host removes a player from the lobby
+     * kick-player — host or co-host removes a player from the lobby
      * payload: { code, hostToken, playerName }
      */
     socket.on("kick-player", async ({ code, hostToken, playerName }) => {

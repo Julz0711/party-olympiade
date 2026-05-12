@@ -11,10 +11,12 @@ import GameLibraryPage from "./pages/GameLibraryPage.jsx";
 import DraftsPage from "./pages/DraftsPage.jsx";
 import DatenschutzPage from "./pages/DatenschutzPage.jsx";
 import UserPublicProfilePage from "./pages/UserPublicProfilePage.jsx";
+import PublicProfilePage from "./pages/PublicProfilePage.jsx";
 import ModerationPage from "./pages/ModerationPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import FloatingRoomNav from "./components/ui/FloatingRoomNav.jsx";
+import MobileBottomNav from "./components/MobileBottomNav.jsx";
 
 function GlobalRejoin() {
   const location = useLocation();
@@ -45,11 +47,13 @@ export default function App() {
         <Route path="/room/:code/host" element={<HostRoomPage />} />
         <Route path="/room/:code/winner" element={<WinnerPage />} />
         <Route path="/user/:username" element={<UserPublicProfilePage />} />
+        <Route path="/user/:userId" element={<PublicProfilePage />} />
         <Route path="/datenschutz" element={<DatenschutzPage />} />
         <Route path="/moderation" element={<ModerationPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <MobileBottomNav />
     </BrowserRouter>
   );
 }

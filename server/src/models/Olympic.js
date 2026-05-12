@@ -19,6 +19,7 @@ const ParticipantSchema = new mongoose.Schema({
   // Card display data — snapshotted from User profile on join
   username: { type: String, default: null },
   avatarColor: { type: Number, default: null },
+  role: { type: String, enum: ["player", "host", "co-host"], default: "player" },
   cardImage: { type: String, default: null },
   playerCard: {
     type: {

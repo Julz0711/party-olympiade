@@ -35,7 +35,18 @@ export default function AuthModal({ onClose }) {
       }
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong');
+      console.error('Auth error:', err);
+      let msg = 'Something went wrong';
+      if (err.response?.data?.error) {
+        msg = err.response.data.error;
+      } else if (err.message === 'Network Error') {
+        msg = 'Network error - check your connection';
+      } else if (err.code === 'ECONNABORTED') {
+        msg = 'Request timeout - please try again';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

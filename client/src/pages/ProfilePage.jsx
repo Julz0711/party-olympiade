@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
 import api from "../api/client.js";
 import { AVATAR_GRADIENTS } from "../components/Header.jsx";
+import PresetSelector from "../components/PresetSelector.jsx";
 import {
   Pencil,
   Save,
@@ -45,7 +46,10 @@ async function compressImage(file) {
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL("image/jpeg", 0.82));
     };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
     img.src = url;
   });
 }
@@ -142,17 +146,23 @@ function TradingCard({
   onRemoveImage,
   bioInput,
   setBioInput,
+  profilePicture,
+  setProfilePicture,
 }) {
   const displayCard = editing ? cardValues : user.playerCard;
   const hasCard = !!user.playerCard;
 
   const pointsUsed = cardValues
-    ? CARD_CATEGORIES.reduce((sum, { key }) => sum + (Number(cardValues[key]) || 0), 0)
+    ? CARD_CATEGORIES.reduce(
+        (sum, { key }) => sum + (Number(cardValues[key]) || 0),
+        0,
+      )
     : 0;
   const remaining = TOTAL_POINTS - pointsUsed;
   const canSave =
     !editing ||
-    (nameInput.trim().length >= 2 && (!cardValues || pointsUsed === TOTAL_POINTS));
+    (nameInput.trim().length >= 2 &&
+      (!cardValues || pointsUsed === TOTAL_POINTS));
 
   const avatarGrad = AVATAR_GRADIENTS[selectedColor] || AVATAR_GRADIENTS[0];
 
@@ -162,12 +172,14 @@ function TradingCard({
         background: avatarGrad,
         padding: "1.5px",
         borderRadius: "24px",
-        boxShadow: "0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(236,72,153,0.1), 0 24px 64px rgba(0,0,0,0.5)",
+        boxShadow:
+          "0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(236,72,153,0.1), 0 24px 64px rgba(0,0,0,0.5)",
       }}
     >
       <div
         style={{
-          background: "radial-gradient(ellipse 130% 55% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 65%), linear-gradient(165deg, #08061a 0%, #0d082a 100%)",
+          background:
+            "radial-gradient(ellipse 130% 55% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 65%), linear-gradient(165deg, #08061a 0%, #0d082a 100%)",
           borderRadius: "23px",
           overflow: "hidden",
         }}
@@ -175,7 +187,10 @@ function TradingCard({
         {/* Top label bar */}
         <div
           className="flex items-center justify-between px-5 py-3"
-          style={{ background: "rgba(139,92,246,0.08)", borderBottom: "1px solid rgba(139,92,246,0.15)" }}
+          style={{
+            background: "rgba(139,92,246,0.08)",
+            borderBottom: "1px solid rgba(139,92,246,0.15)",
+          }}
         >
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400">
             ✦ Player Card
@@ -185,9 +200,13 @@ function TradingCard({
               <button
                 className="p-1.5 rounded-lg text-white/25 hover:text-white/60 transition-colors"
                 title="Profil-Link kopieren"
-                onClick={() => navigator.clipboard.writeText(
-                  window.location.origin + "/user/" + encodeURIComponent(user.username)
-                )}
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    window.location.origin +
+                      "/user/" +
+                      encodeURIComponent(user.username),
+                  )
+                }
               >
                 <Share2 size={13} />
               </button>
@@ -196,8 +215,18 @@ function TradingCard({
               <span
                 className="text-[10px] font-black px-2 py-0.5 rounded-lg"
                 style={{
-                  background: remaining === 0 ? "rgba(34,197,94,0.15)" : remaining > 0 ? "rgba(250,204,21,0.15)" : "rgba(239,68,68,0.15)",
-                  color: remaining === 0 ? "#4ade80" : remaining > 0 ? "#facc15" : "#f87171",
+                  background:
+                    remaining === 0
+                      ? "rgba(34,197,94,0.15)"
+                      : remaining > 0
+                        ? "rgba(250,204,21,0.15)"
+                        : "rgba(239,68,68,0.15)",
+                  color:
+                    remaining === 0
+                      ? "#4ade80"
+                      : remaining > 0
+                        ? "#facc15"
+                        : "#f87171",
                   border: `1px solid ${remaining === 0 ? "rgba(34,197,94,0.3)" : remaining > 0 ? "rgba(250,204,21,0.3)" : "rgba(239,68,68,0.3)"}`,
                 }}
               >
@@ -226,17 +255,38 @@ function TradingCard({
 
         {/* Art section — full width */}
         <div
-          className="relative flex items-center justify-center overflow-hidden"
-          style={{ height: 200, background: artImage ? "transparent" : avatarGrad }}
+          className="relative flex items-center justify-center overflow-visible"
+          style={{
+            height: editing ? 330 : 200,
+            background: artImage ? "transparent" : avatarGrad,
+          }}
         >
           {artImage ? (
-            <img src={artImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={artImage}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
           ) : (
             <>
-              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,3,15,0.2) 0%, rgba(5,3,15,0.55) 100%)" }} />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(5,3,15,0.2) 0%, rgba(5,3,15,0.55) 100%)",
+                }}
+              />
               <div
                 className="relative z-10 rounded-2xl flex items-center justify-center font-black text-white"
-                style={{ width: 76, height: 76, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", border: "2px solid rgba(255,255,255,0.2)", fontSize: 30, textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
+                style={{
+                  width: 76,
+                  height: 76,
+                  background: "rgba(0,0,0,0.3)",
+                  backdropFilter: "blur(8px)",
+                  border: "2px solid rgba(255,255,255,0.2)",
+                  fontSize: 30,
+                  textShadow: "0 2px 12px rgba(0,0,0,0.5)",
+                }}
               >
                 {user.username[0].toUpperCase()}
               </div>
@@ -244,37 +294,116 @@ function TradingCard({
           )}
 
           {/* Diagonal shine */}
-          <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 45%, rgba(255,255,255,0.03) 100%)" }} />
+          <div
+            className="absolute inset-0 z-10 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 45%, rgba(255,255,255,0.03) 100%)",
+            }}
+          />
 
           {/* Corner brackets */}
           {!editing && (
             <>
-              <div className="absolute top-3 left-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderTop: "1.5px solid rgba(255,255,255,0.3)", borderLeft: "1.5px solid rgba(255,255,255,0.3)", borderTopLeftRadius: 2 }} />
-              <div className="absolute top-3 right-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderTop: "1.5px solid rgba(255,255,255,0.3)", borderRight: "1.5px solid rgba(255,255,255,0.3)", borderTopRightRadius: 2 }} />
-              <div className="absolute bottom-10 left-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderBottom: "1.5px solid rgba(255,255,255,0.15)", borderLeft: "1.5px solid rgba(255,255,255,0.15)", borderBottomLeftRadius: 2 }} />
-              <div className="absolute bottom-10 right-3 z-10 pointer-events-none" style={{ width: 14, height: 14, borderBottom: "1.5px solid rgba(255,255,255,0.15)", borderRight: "1.5px solid rgba(255,255,255,0.15)", borderBottomRightRadius: 2 }} />
+              <div
+                className="absolute top-3 left-3 z-10 pointer-events-none"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderTop: "1.5px solid rgba(255,255,255,0.3)",
+                  borderLeft: "1.5px solid rgba(255,255,255,0.3)",
+                  borderTopLeftRadius: 2,
+                }}
+              />
+              <div
+                className="absolute top-3 right-3 z-10 pointer-events-none"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderTop: "1.5px solid rgba(255,255,255,0.3)",
+                  borderRight: "1.5px solid rgba(255,255,255,0.3)",
+                  borderTopRightRadius: 2,
+                }}
+              />
+              <div
+                className="absolute bottom-10 left-3 z-10 pointer-events-none"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderBottom: "1.5px solid rgba(255,255,255,0.15)",
+                  borderLeft: "1.5px solid rgba(255,255,255,0.15)",
+                  borderBottomLeftRadius: 2,
+                }}
+              />
+              <div
+                className="absolute bottom-10 right-3 z-10 pointer-events-none"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderBottom: "1.5px solid rgba(255,255,255,0.15)",
+                  borderRight: "1.5px solid rgba(255,255,255,0.15)",
+                  borderBottomRightRadius: 2,
+                }}
+              />
             </>
           )}
 
           {/* Fade into card background */}
-          <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: 80, background: "linear-gradient(to bottom, transparent 0%, rgb(8,6,26) 100%)" }} />
+          <div
+            className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+            style={{
+              height: 80,
+              background:
+                "linear-gradient(to bottom, transparent 0%, rgb(8,6,26) 100%)",
+            }}
+          />
 
           {editing && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center gap-3" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}>
-              <label className="flex items-center gap-1.5 text-xs font-bold text-white cursor-pointer px-3 py-2 rounded-xl hover:bg-white/10 transition-all" style={{ border: "1px solid rgba(255,255,255,0.25)" }}>
-                <Camera size={14} />
-                {artImage ? "Ändern" : "Hochladen"}
-                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onUploadImage(file);
-                  e.target.value = "";
-                }} />
-              </label>
-              {artImage && (
-                <button type="button" className="flex items-center gap-1.5 text-xs font-bold text-pink-300 px-3 py-2 rounded-xl hover:bg-pink-500/10 transition-all" style={{ border: "1px solid rgba(236,72,153,0.35)" }} onClick={onRemoveImage}>
-                  <ImageOff size={14} />
-                  Entfernen
-                </button>
+            <div
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 px-3 py-6"
+              style={{
+                background: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(2px)",
+              }}
+            >
+              <div className="flex flex-col items-center gap-1.5 w-full">
+                <label
+                  className="flex items-center gap-1.5 text-xs font-bold text-white cursor-pointer px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all whitespace-nowrap"
+                  style={{ border: "1px solid rgba(255,255,255,0.25)" }}
+                >
+                  <Camera size={13} />
+                  {artImage ? "Ändern" : "Hochladen"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onUploadImage(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {artImage && (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-xs font-bold text-pink-300 px-3 py-1.5 rounded-lg hover:bg-pink-500/10 transition-all whitespace-nowrap"
+                    style={{ border: "1px solid rgba(236,72,153,0.35)" }}
+                    onClick={onRemoveImage}
+                  >
+                    <ImageOff size={13} />
+                    Entfernen
+                  </button>
+                )}
+              </div>
+              {!artImage && profilePicture && setProfilePicture && (
+                <div className="text-center w-full px-1">
+                  <p className="text-[11px] text-white/60 mb-2">oder wählen</p>
+                  <PresetSelector
+                    selectedPreset={profilePicture}
+                    onSelect={setProfilePicture}
+                  />
+                </div>
               )}
             </div>
           )}
@@ -289,10 +418,17 @@ function TradingCard({
               onChange={(e) => setNameInput(e.target.value)}
               maxLength={30}
               autoFocus
-              onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") onCancel();
+              }}
             />
           ) : (
-            <h1 className="text-xl font-black text-white" style={{ textShadow: "0 0 24px rgba(139,92,246,0.4)" }}>{user.username}</h1>
+            <h1
+              className="text-xl font-black text-white"
+              style={{ textShadow: "0 0 24px rgba(139,92,246,0.4)" }}
+            >
+              {user.username}
+            </h1>
           )}
         </div>
 
@@ -311,7 +447,12 @@ function TradingCard({
             ) : (
               <p
                 className="text-xs text-white/45 leading-relaxed text-center"
-                style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
               >
                 {user.bio}
               </p>
@@ -320,32 +461,62 @@ function TradingCard({
         )}
 
         {/* Divider */}
-        <div className="mx-5" style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(236,72,153,0.3), transparent)" }} />
+        <div
+          className="mx-5"
+          style={{
+            height: "1px",
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(236,72,153,0.3), transparent)",
+          }}
+        />
 
         {/* Stats section — full width bars */}
         <div className="px-5 pt-4 pb-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex-1" style={{ height: 1, background: "linear-gradient(to right, transparent, rgba(139,92,246,0.25))" }} />
-            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Stats</span>
-            <div className="flex-1" style={{ height: 1, background: "linear-gradient(to left, transparent, rgba(139,92,246,0.25))" }} />
+            <div
+              className="flex-1"
+              style={{
+                height: 1,
+                background:
+                  "linear-gradient(to right, transparent, rgba(139,92,246,0.25))",
+              }}
+            />
+            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">
+              Stats
+            </span>
+            <div
+              className="flex-1"
+              style={{
+                height: 1,
+                background:
+                  "linear-gradient(to left, transparent, rgba(139,92,246,0.25))",
+              }}
+            />
             {!editing && !hasCard && (
-              <button className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors ml-1" onClick={onOpenEdit}>
+              <button
+                className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors ml-1"
+                onClick={onOpenEdit}
+              >
                 + Erstellen
               </button>
             )}
           </div>
           <div className="space-y-2.5">
             {CARD_CATEGORIES.map(({ key, label, Icon, color }) => {
-              const val = displayCard ? (Number(displayCard[key]) || 0) : 0;
+              const val = displayCard ? Number(displayCard[key]) || 0 : 0;
               return (
                 <div key={key} className="flex items-center gap-3">
                   <Icon size={13} style={{ color, flexShrink: 0 }} />
-                  <span className="text-xs font-semibold text-white/50 w-14 flex-shrink-0">{label}</span>
+                  <span className="text-xs font-semibold text-white/50 w-14 flex-shrink-0">
+                    {label}
+                  </span>
                   <div className="flex-1">
                     {editing && cardValues ? (
                       <StatBarEdit
                         value={val}
-                        onChange={(v) => onCardChange({ ...cardValues, [key]: v })}
+                        onChange={(v) =>
+                          onCardChange({ ...cardValues, [key]: v })
+                        }
                         max={5}
                         color={color}
                         remaining={remaining}
@@ -354,7 +525,9 @@ function TradingCard({
                       <StatBar value={val} max={5} color={color} />
                     )}
                   </div>
-                  <span className="text-[11px] font-black text-white/25 w-6 text-right flex-shrink-0">{val}/5</span>
+                  <span className="text-[11px] font-black text-white/25 w-6 text-right flex-shrink-0">
+                    {val}/5
+                  </span>
                 </div>
               );
             })}
@@ -375,7 +548,10 @@ function TradingCard({
                   height: 18,
                   borderRadius: "50%",
                   background: g,
-                  outline: selectedColor === i ? "2px solid white" : "2px solid transparent",
+                  outline:
+                    selectedColor === i
+                      ? "2px solid white"
+                      : "2px solid transparent",
                   outlineOffset: 2,
                 }}
               />
@@ -404,7 +580,9 @@ function TradingCard({
               </button>
             </div>
             {profileError && (
-              <p className="text-xs text-pink-400 mt-2 text-center">{profileError}</p>
+              <p className="text-xs text-pink-400 mt-2 text-center">
+                {profileError}
+              </p>
             )}
           </div>
         )}
@@ -412,9 +590,14 @@ function TradingCard({
         {/* Footer */}
         <div
           className="flex items-center justify-between px-5 py-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(0,0,0,0.2)",
+          }}
         >
-          <span className="text-[11px] text-white/25 truncate max-w-[60%]">{user.email}</span>
+          <span className="text-[11px] text-white/25 truncate max-w-[60%]">
+            {user.email}
+          </span>
           <button
             className="flex items-center gap-1.5 text-[11px] text-pink-400/60 hover:text-pink-400 transition-colors"
             onClick={logout}
@@ -446,6 +629,9 @@ export default function ProfilePage() {
   const [cardValues, setCardValues] = useState(null);
   const [cardImagePreview, setCardImagePreview] = useState(null);
   const [bioInput, setBioInput] = useState("");
+  const [profilePicture, setProfilePicture] = useState(
+    user?.profilePicture || "Charakter_1",
+  );
   const [saving, setSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
 
@@ -513,6 +699,7 @@ export default function ProfilePage() {
     setCardValues(vals);
     setCardImagePreview(user.cardImage ?? null);
     setBioInput(user.bio ?? "");
+    setProfilePicture(user.profilePicture || "Charakter_1");
     setProfileError("");
     setEditing(true);
   }
@@ -523,6 +710,7 @@ export default function ProfilePage() {
     setCardImagePreview(null);
     setBioInput("");
     setSelectedColor(user.avatarColor ?? 0);
+    setProfilePicture(user.profilePicture || "Charakter_1");
     setProfileError("");
   }
 
@@ -556,6 +744,13 @@ export default function ProfilePage() {
       const savedImage = user.cardImage ?? null;
       if (cardImagePreview !== savedImage) {
         changes.cardImage = cardImagePreview;
+      }
+      // Save profilePicture — it should always be saved if editing
+      if (
+        profilePicture &&
+        profilePicture !== (user.profilePicture || "Charakter_1")
+      ) {
+        changes.profilePicture = profilePicture;
       }
       if (Object.keys(changes).length > 0) {
         await updateProfile(changes);
@@ -622,6 +817,8 @@ export default function ProfilePage() {
             onRemoveImage={() => setCardImagePreview(null)}
             bioInput={bioInput}
             setBioInput={setBioInput}
+            profilePicture={profilePicture}
+            setProfilePicture={setProfilePicture}
           />
         </div>
 
@@ -641,7 +838,7 @@ export default function ProfilePage() {
             {activeOlympics.map((o) => (
               <div
                 key={o.code + o.role}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                className="flex items-center gap-2 sm:gap-3 rounded-xl px-3 py-2.5 flex-wrap sm:flex-nowrap"
                 style={{
                   background: "rgba(34,197,94,0.07)",
                   border: "1px solid rgba(34,197,94,0.15)",
@@ -651,21 +848,25 @@ export default function ProfilePage() {
                   <p className="font-bold text-white text-sm truncate">
                     {o.name}
                   </p>
-                  <p className="text-xs text-green-400/70">
-                    <span className="font-mono">{o.code}</span>
-                    {" · "}
-                    {o.status === "lobby" ? "Lobby" : "Läuft"}
-                    {" · "}
-                    {o.participants.length} Spieler
+                  <p className="text-xs text-green-400/70 leading-snug">
+                    <span className="font-mono text-[10px]">{o.code}</span>
+                    <span className="hidden sm:inline">{" · "}</span>
+                    <div className="sm:inline">
+                      {o.status === "lobby" ? "Lobby" : "Läuft"}
+                    </div>
+                    <span className="hidden sm:inline">{" · "}</span>
+                    <div className="sm:inline">
+                      {o.participants.length} Spieler
+                    </div>
                     {o.role === "participant" && (
-                      <span className="ml-1 text-green-400/50">
+                      <span className="ml-1 text-green-400/50 block sm:inline">
                         (Teilnehmer)
                       </span>
                     )}
                   </p>
                 </div>
                 <button
-                  className="flex items-center gap-1.5 text-xs font-semibold shrink-0 px-3 py-1.5 rounded-xl transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold shrink-0 px-2.5 sm:px-3 py-1.5 rounded-xl transition-colors"
                   style={{
                     background: "rgba(34,197,94,0.25)",
                     border: "1px solid rgba(34,197,94,0.5)",
@@ -680,7 +881,8 @@ export default function ProfilePage() {
                   }
                 >
                   <ExternalLink size={11} />
-                  Beitreten
+                  <span className="hidden sm:inline">Beitreten</span>
+                  <span className="sm:hidden">Öffnen</span>
                 </button>
               </div>
             ))}
@@ -695,12 +897,12 @@ export default function ProfilePage() {
             border: "1px solid rgba(255,255,255,0.07)",
           }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <h2 className="font-black text-white text-sm uppercase tracking-wider">
               Verlauf
             </h2>
             <button
-              className="btn-primary !py-1.5 !px-4 text-sm"
+              className="btn-primary !py-2 !px-4 text-xs md:text-sm flex-shrink-0"
               onClick={() => navigate("/create")}
             >
               + Neue Olympiade
@@ -759,17 +961,19 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <span className="font-bold text-white text-sm truncate">
                         {o.name}
                       </span>
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full border ${STATUS_STYLES[o.status] || ""}`}
+                        className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0 ${STATUS_STYLES[o.status] || ""}`}
                       >
                         {STATUS_LABEL[o.status] || o.status}
                       </span>
                       {myRank && (
-                        <span className={`text-xs font-bold ${rankColor}`}>
+                        <span
+                          className={`text-xs font-bold flex-shrink-0 ${rankColor}`}
+                        >
                           #{myRank}
                         </span>
                       )}

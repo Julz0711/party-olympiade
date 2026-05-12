@@ -231,15 +231,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* ── HERO ──────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-hidden min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]"
-      >
+      <section className="relative overflow-hidden min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]">
         {/* Full-bleed background: Banner image anchored left */}
         <img
           src="/assets/Banner_1.png"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover hidden md:block"
           style={{ objectPosition: "left center" }}
         />
 
@@ -270,11 +268,8 @@ export default function HomePage() {
         />
 
         {/* Text content — right side, vertically centred */}
-        <div
-          className="relative z-10 flex items-center justify-end min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]"
-        >
-          <div className="w-full sm:w-[60%] lg:w-[52%] px-6 sm:px-10 lg:px-14 xl:px-20 py-10 animate-slide-up">
-
+        <div className="relative z-10 flex items-center justify-end min-h-[360px] sm:min-h-[420px] lg:min-h-[calc(100vh-56px)]">
+          <div className="w-full md:w-[60%] lg:w-[52%] px-6 sm:px-10 lg:px-14 xl:px-20 py-10 animate-slide-up">
             {/* Pill badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-pink-500/50 bg-pink-500/12 text-pink-300 text-[10px] font-black uppercase tracking-[0.2em] mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
@@ -282,13 +277,18 @@ export default function HomePage() {
             </div>
 
             {/* Headline — large, tight */}
-            <h1 className="font-black tracking-tight leading-[0.95] mb-4"
-              style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}>
-              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">SPIELE.</span>
+            <h1
+              className="font-black tracking-tight leading-[0.95] mb-4"
+              style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}
+            >
+              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">
+                SPIELE.
+              </span>
               <br />
               <span
                 style={{
-                  background: "linear-gradient(90deg, #ec4899, #8b5cf6, #22d3ee)",
+                  background:
+                    "linear-gradient(90deg, #ec4899, #8b5cf6, #22d3ee)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   filter: "drop-shadow(0 0 24px rgba(139,92,246,0.6))",
@@ -297,7 +297,9 @@ export default function HomePage() {
                 PUNKTE.
               </span>
               <br />
-              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">WERDE{" "}</span>
+              <span className="text-white drop-shadow-[0_2px_20px_rgba(255,255,255,0.15)]">
+                WERDE{" "}
+              </span>
               <span
                 style={{
                   background: "linear-gradient(90deg, #facc15, #f97316)",
@@ -311,22 +313,27 @@ export default function HomePage() {
             </h1>
 
             <p className="text-white/60 text-sm leading-relaxed mb-7 max-w-xs">
-              Erstelle deine eigene Olympiade, lade die Crew per 4-stelligem Code
-              ein, und wir tracken Punkte, Tiebreaker und den Champion für dich –
-              in Echtzeit.
+              Erstelle deine eigene Olympiade, lade die Crew per 4-stelligem
+              Code ein, und wir tracken Punkte, Tiebreaker und den Champion für
+              dich – in Echtzeit.
             </p>
 
             {/* CTA buttons */}
             <div className="flex flex-wrap gap-3">
               <button
                 className="btn-primary !px-6 !py-3 !rounded-2xl text-sm gap-2.5"
-                style={{ boxShadow: "0 0 40px rgba(236,72,153,0.5), 0 0 80px rgba(139,92,246,0.25)" }}
+                style={{
+                  boxShadow:
+                    "0 0 40px rgba(236,72,153,0.5), 0 0 80px rgba(139,92,246,0.25)",
+                }}
                 onClick={() => navigate("/create")}
               >
                 <Rocket size={15} />
                 <div className="text-left">
                   <div className="font-black text-sm">Olympiade erstellen</div>
-                  <div className="text-[11px] font-normal opacity-70">In 2 Minuten startbereit</div>
+                  <div className="text-[11px] font-normal opacity-70">
+                    In 2 Minuten startbereit
+                  </div>
                 </div>
               </button>
               <button
@@ -337,7 +344,9 @@ export default function HomePage() {
                 <Users size={15} />
                 <div className="text-left">
                   <div className="font-black text-sm">Lobby beitreten</div>
-                  <div className="text-[11px] font-normal opacity-70">Mit 4-stelligem Code</div>
+                  <div className="text-[11px] font-normal opacity-70">
+                    Mit 4-stelligem Code
+                  </div>
                 </div>
               </button>
             </div>

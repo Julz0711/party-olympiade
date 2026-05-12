@@ -63,8 +63,8 @@ The website does **not** host or run the games themselves; it is a **score track
   - _Tiebreaker question_ — ties shown as-is; host resolves manually
   - _Shared points_ — tied players split the combined point value of their places
 - [ ] Optional bonus/penalty rules (toggles):
-  - **Comeback Penalty** — Previous leader not in top 3 → −2 pts
-  - **Last Place Bonus** — Previous last-place in top 3 → +1 pt
+  - **Comeback Penalty** — Previous leader not in top 1 → −2 pts
+  - **Last Place Bonus** — Previous last-place in top 1 → +1 pt
   - **Win Streak Bonus** — FFA winner of previous FFA game wins again → +1 pt
   - **Final Double Points** — Last game awards 2× base points
 

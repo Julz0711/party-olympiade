@@ -74,7 +74,7 @@ export default function FloatingRoomNav({ code, role }) {
   ];
 
   return (
-    <div className="fixed bottom-5 left-5 z-50">
+    <div className="hidden md:fixed bottom-5 left-5 z-50">
       {open && (
         <>
           <div className="fixed inset-0 z-0" onClick={() => setOpen(false)} />

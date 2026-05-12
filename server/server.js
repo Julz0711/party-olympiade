@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import olympicsRouter from "./src/routes/olympics.js";
 import authRouter from "./src/routes/auth.js";
 import gamePresetsRouter from "./src/routes/gamePresets.js";
+import usersRouter from "./src/routes/users.js";
 import { initSocket } from "./src/socket/index.js";
 
 dotenv.config();
@@ -30,6 +31,9 @@ const io = new Server(httpServer, {
   },
 });
 
+// Make io globally available to routes
+global.io = io;
+
 // Middleware
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "15mb" })); // generous limit for base64 images
@@ -38,11 +42,21 @@ app.use(express.json({ limit: "15mb" })); // generous limit for base64 images
 app.use("/api/olympics", olympicsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/game-presets", gamePresetsRouter);
+app.use("/api/users", usersRouter);
 
 // Health check
 app.get("/health", (_req, res) =>
   res.json({ status: "ok", time: new Date().toISOString() }),
 );
+
+// GET /api/profile-presets - list available profile picture presets
+app.get("/api/profile-presets", (_req, res) => {
+  const presets = Array.from({ length: 30 }, (_, i) => ({
+    id: `Charakter_${i + 1}`,
+    name: `Charakter ${i + 1}`,
+  }));
+  res.json(presets);
+});
 
 // Socket.IO
 initSocket(io);

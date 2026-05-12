@@ -315,6 +315,29 @@ export default function HostRoomPage() {
     });
   }
 
+  async function toggleCoHost(userId) {
+    if (!userId) {
+      alert("Spieler hat keine User ID");
+      return;
+    }
+    const participant = olympic.participants.find((p) => p.userId === userId);
+    if (!participant) return;
+
+    const newRole = participant.role === "co-host" ? "player" : "co-host";
+
+    try {
+      await api.patch(
+        `/olympics/${code.toUpperCase()}/participants/${userId}/role`,
+        { role: newRole },
+      );
+      // UI will update automatically via room-update Socket.IO event
+    } catch (err) {
+      alert(
+        `Fehler beim Aktualisieren der Rolle: ${err.response?.data?.message || err.message}`,
+      );
+    }
+  }
+
   function navigate_game(direction) {
     const socket = getSocket();
     socket.emit("navigate", { code: code.toUpperCase(), direction, hostToken });
@@ -567,14 +590,35 @@ export default function HostRoomPage() {
                         playerCard={p.playerCard ?? null}
                         fallbackIndex={i + 1}
                       />
-                      {/* Kick button on hover */}
-                      <button
-                        className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-pink-500 text-white text-[10px] font-black items-center justify-center hidden group-hover:flex shadow-lg z-30"
-                        onClick={() => confirmKick(p.name)}
-                        title={`Kick ${p.name}`}
-                      >
-                        ×
-                      </button>
+                      {/* Action buttons on hover */}
+                      <div className="absolute -top-1.5 -right-1.5 gap-1 hidden group-hover:flex z-30">
+                        {/* Co-Host toggle button */}
+                        {p.userId && (
+                          <button
+                            onClick={() => toggleCoHost(p.userId)}
+                            className={`w-5 h-5 rounded-full text-white text-[10px] font-black flex items-center justify-center shadow-lg transition-colors ${
+                              p.role === "co-host"
+                                ? "bg-yellow-500 hover:bg-yellow-600"
+                                : "bg-gray-600 hover:bg-gray-700"
+                            }`}
+                            title={
+                              p.role === "co-host"
+                                ? "Co-Host entfernen"
+                                : "Co-Host machen"
+                            }
+                          >
+                            {p.role === "co-host" ? "★" : "☆"}
+                          </button>
+                        )}
+                        {/* Kick button */}
+                        <button
+                          className="w-5 h-5 rounded-full bg-pink-500 text-white text-[10px] font-black items-center justify-center flex shadow-lg hover:bg-pink-600 transition-colors"
+                          onClick={() => confirmKick(p.name)}
+                          title={`Kick ${p.name}`}
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                   ))}
 

@@ -40,6 +40,7 @@ const UserSchema = new mongoose.Schema(
       default: null,
     },
     cardImage: { type: String, default: null },
+    profilePicture: { type: String, default: 'Charakter_1' },
     bio: { type: String, default: "", maxlength: 300, trim: true },
     role: {
       type: String,

@@ -243,3 +243,10 @@ input[type="file"] {
 .page-enter {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Mobile bottom nav padding */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 64px;
+  }
+}
