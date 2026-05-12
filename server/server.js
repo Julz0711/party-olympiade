@@ -16,15 +16,22 @@ const httpServer = createServer(app);
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
+// Allow both www and non-www versions, plus localhost for development
+const allowedOrigins = [
+  CLIENT_URL,
+  CLIENT_URL.replace("https://", "https://www.").replace("http://", "http://www."), // add www prefix
+  CLIENT_URL.replace("https://www.", "https://").replace("http://www.", "http://"), // remove www prefix
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
 
 // Middleware
-app.use(cors({ origin: CLIENT_URL }));
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "15mb" })); // generous limit for base64 images
 
 // Routes
