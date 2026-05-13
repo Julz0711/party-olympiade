@@ -809,7 +809,11 @@ export default function ProfilePage() {
             saving={saving}
             profileError={profileError}
             logout={logout}
-            artImage={editing ? cardImagePreview : (user.cardImage ?? null)}
+            artImage={
+              editing
+                ? cardImagePreview
+                : (user.cardImage ?? (user.profilePicture ? `/assets/${user.profilePicture}.png` : null))
+            }
             onUploadImage={async (file) => {
               const b64 = await compressImage(file);
               if (b64) setCardImagePreview(b64);

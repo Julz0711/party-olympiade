@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, User } from "lucide-react";
 
 export default function PresetSelector({ selectedPreset, onSelect }) {
-  const [presets, setPresets] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
 
+  // Generate 30 character presets locally
+  const presets = useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => ({
+      id: `Charakter_${i + 1}`,
+      name: `Character ${i + 1}`,
+    }));
+  }, []);
+
   useEffect(() => {
-    axios.get("/api/profile-presets").then((res) => {
-      setPresets(res.data);
-      const idx = res.data.findIndex((p) => p.id === selectedPreset);
-      if (idx >= 0) setCurrentIndex(idx);
-      else setCurrentIndex(0);
-    });
-  }, [selectedPreset]);
+    const idx = presets.findIndex((p) => p.id === selectedPreset);
+    if (idx >= 0) setCurrentIndex(idx);
+    else setCurrentIndex(0);
+  }, [selectedPreset, presets]);
 
   if (presets.length === 0) return null;
 
@@ -22,16 +25,16 @@ export default function PresetSelector({ selectedPreset, onSelect }) {
 
   const handlePrev = () => {
     setImageError(false);
-    setCurrentIndex((i) => (i - 1 + presets.length) % presets.length);
+    const newIndex = (currentIndex - 1 + presets.length) % presets.length;
+    setCurrentIndex(newIndex);
+    onSelect(presets[newIndex].id);
   };
 
   const handleNext = () => {
     setImageError(false);
-    setCurrentIndex((i) => (i + 1) % presets.length);
-  };
-
-  const handleSelect = () => {
-    onSelect(current.id);
+    const newIndex = (currentIndex + 1) % presets.length;
+    setCurrentIndex(newIndex);
+    onSelect(presets[newIndex].id);
   };
 
   return (
@@ -81,13 +84,6 @@ export default function PresetSelector({ selectedPreset, onSelect }) {
         </button>
       </div>
 
-      {/* Select button — auto-selects on click */}
-      <button
-        onClick={handleSelect}
-        className="btn-primary flex-1 !py-2 text-sm flex items-center justify-center gap-1.5 mx-auto"
-      >
-        Auswählen
-      </button>
     </div>
   );
 }

@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { connectSocket, getSocket } from "../socket/socket.js";
 import useOlympicStore from "../store/useOlympicStore.js";
+import api from "../api/client.js";
 import GlassCard from "../components/ui/GlassCard.jsx";
 import Scoreboard from "../components/Scoreboard.jsx";
+import ScoreEntry from "../components/ScoreEntry.jsx";
+import Select from "../components/ui/Select.jsx";
 import FloatingRoomNav from "../components/ui/FloatingRoomNav.jsx";
 import TiebreakerModal from "../components/ui/TiebreakerModal.jsx";
 import IntroOverlay from "../components/ui/IntroOverlay.jsx";
@@ -22,7 +25,9 @@ import {
   ChevronRight,
   ArrowLeft,
   Play,
+  Pause,
   Lock,
+  Settings,
 } from "lucide-react";
 import CompactPlayerCard from "../components/ui/CompactPlayerCard.jsx";
 import ActivityFeed from "../components/ui/ActivityFeed.jsx";
@@ -47,6 +52,15 @@ export default function ParticipantView() {
   const [introOlympic, setIntroOlympic] = useState(null);
   const [feedItems, setFeedItems] = useState([]);
   const [chatCooldown, setChatCooldown] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [coHostToken, setCoHostToken] = useState(null);
+  const [scoreGame, setScoreGame] = useState(null);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [manageTab, setManageTab] = useState("players");
+  const [newGameIcon, setNewGameIcon] = useState("🎮");
+  const [newGameTitle, setNewGameTitle] = useState("");
+  const [newGameMode, setNewGameMode] = useState("ffa");
+  const [gamesSaving, setGamesSaving] = useState(false);
 
   useEffect(() => {
     if (!code) return;
@@ -103,6 +117,9 @@ export default function ParticipantView() {
 
     socket.on("intro-start", ({ olympic: o }) => setIntroOlympic(o));
     socket.on("intro-ended", () => setIntroOlympic(null));
+    socket.on("olympic-paused", () => setPaused(true));
+    socket.on("olympic-resumed", () => setPaused(false));
+    socket.on("cohost-token", ({ hostToken }) => setCoHostToken(hostToken || null));
 
     socket.on("chat-message", (msg) =>
       setFeedItems((prev) => [...prev, { type: "chat", ...msg }]),
@@ -135,6 +152,9 @@ export default function ParticipantView() {
       socket.off("tiebreaker-resolved");
       socket.off("intro-start");
       socket.off("intro-ended");
+      socket.off("olympic-paused");
+      socket.off("olympic-resumed");
+      socket.off("cohost-token");
       socket.off("chat-message");
       socket.off("bonus-events");
       socket.off("chat-cooldown");
@@ -402,11 +422,72 @@ export default function ParticipantView() {
     });
   }
 
+  function coHostSubmitScore(result) {
+    getSocket()?.emit("submit-score", {
+      code: code.toUpperCase(),
+      result,
+      hostToken: coHostToken,
+    });
+    setScoreGame(null);
+  }
+
+  async function coHostToggleCoHost(playerName) {
+    const participant = olympic.participants.find((p) => p.name === playerName);
+    if (!participant) return;
+    const newRole = participant.role === "co-host" ? "player" : "co-host";
+    try {
+      await api.patch(`/olympics/${code.toUpperCase()}/participants/role`, { name: playerName, role: newRole }, {
+        headers: { "x-host-token": coHostToken },
+      });
+    } catch {}
+  }
+
+  function coHostKickPlayer(playerName) {
+    getSocket()?.emit("kick-player", {
+      code: code.toUpperCase(),
+      hostToken: coHostToken,
+      playerName,
+    });
+  }
+
+  async function coHostRemoveGame(gameId) {
+    const updatedGames = olympic.games.filter((g) => String(g._id) !== String(gameId));
+    setGamesSaving(true);
+    try {
+      await api.patch(`/olympics/${code.toUpperCase()}/games`, { games: updatedGames }, {
+        headers: { "x-host-token": coHostToken },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    setGamesSaving(false);
+  }
+
+  async function coHostAddGame() {
+    if (!newGameTitle.trim()) return;
+    const newGame = { icon: newGameIcon || "🎮", title: newGameTitle.trim(), mode: newGameMode };
+    const updatedGames = [...olympic.games, newGame];
+    setGamesSaving(true);
+    try {
+      await api.patch(`/olympics/${code.toUpperCase()}/games`, { games: updatedGames }, {
+        headers: { "x-host-token": coHostToken },
+      });
+      setNewGameTitle("");
+      setNewGameIcon("🎮");
+      setNewGameMode("ffa");
+    } catch (err) {
+      console.error(err);
+    }
+    setGamesSaving(false);
+  }
+
   const currentGame = olympic.games[olympic.currentGameIndex];
   const totalGames = olympic.games.length;
   const scoredCount = olympic.results.length;
   const progress =
     totalGames > 0 ? Math.round((scoredCount / totalGames) * 100) : 0;
+  const myParticipant = olympic.participants.find(p => p.name === participantName);
+  const isCoHost = myParticipant?.role === "co-host";
 
   return (
     <>
@@ -428,11 +509,19 @@ export default function ParticipantView() {
                   {olympic.name}
                 </h1>
                 {participantName && (
-                  <p className="text-xs text-white/40 mt-0.5">
+                  <p className="text-xs text-white/40 mt-0.5 flex items-center gap-2">
                     Du spielst als{" "}
                     <span className="text-purple-300 font-semibold">
                       {participantName}
                     </span>
+                    {isCoHost && (
+                      <span
+                        className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded"
+                        style={{ background: "rgba(234,179,8,0.15)", color: "#facc15", border: "1px solid rgba(234,179,8,0.3)" }}
+                      >
+                        ★ Co-Host
+                      </span>
+                    )}
                   </p>
                 )}
               </div>
@@ -455,9 +544,24 @@ export default function ParticipantView() {
               </div>
             </div>
 
-            <span className="text-sm font-mono text-yellow-400 tracking-widest flex-shrink-0">
-              {code?.toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {isCoHost && coHostToken && (
+                <button
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                  style={{
+                    background: "rgba(234,179,8,0.12)",
+                    border: "1px solid rgba(234,179,8,0.3)",
+                    color: "#facc15",
+                  }}
+                  onClick={() => setShowManageModal(true)}
+                >
+                  <Settings size={13} /> Verwalten
+                </button>
+              )}
+              <span className="text-sm font-mono text-yellow-400 tracking-widest">
+                {code?.toUpperCase()}
+              </span>
+            </div>
           </div>
 
           {/* ── Progress bar (mobile) ── */}
@@ -632,6 +736,49 @@ export default function ParticipantView() {
                   }}
                 >
                   <p className="text-white/30">Kein Spiel ausgewählt</p>
+                </div>
+              )}
+
+              {/* ── Co-host score entry ── */}
+              {isCoHost && coHostToken && (
+                <div
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: "rgba(234,179,8,0.05)",
+                    border: "1px solid rgba(234,179,8,0.2)",
+                  }}
+                >
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-3 flex items-center gap-1.5">
+                    ★ Co-Host · Wertung eintragen
+                  </p>
+                  <div className="mb-3">
+                    <Select
+                      value={scoreGame ? String(scoreGame._id) : ""}
+                      onChange={(val) => {
+                        const g = olympic.games.find((gm) => String(gm._id) === val);
+                        setScoreGame(g || null);
+                      }}
+                      options={[
+                        { value: "", label: "Spiel auswählen…" },
+                        ...olympic.games.map((g) => ({
+                          value: String(g._id),
+                          label: `${g.icon} ${g.title}${olympic.results.find((r) => String(r.gameId) === String(g._id)) ? " ✓" : ""}`,
+                        })),
+                      ]}
+                    />
+                  </div>
+                  {scoreGame && (
+                    <ScoreEntry
+                      game={scoreGame}
+                      participants={olympic.participants}
+                      existingResult={olympic.results.find(
+                        (r) => String(r.gameId) === String(scoreGame._id),
+                      )}
+                      onSubmit={coHostSubmitScore}
+                      onCancel={() => setScoreGame(null)}
+                      tieRule={olympic.tieRule}
+                    />
+                  )}
                 </div>
               )}
 
@@ -925,6 +1072,247 @@ export default function ParticipantView() {
           hostToken={null}
           onClose={() => setIntroOlympic(null)}
         />
+      )}
+
+      {/* Co-host Verwalten modal */}
+      {showManageModal && isCoHost && coHostToken && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowManageModal(false); }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl overflow-hidden"
+            style={{ background: "rgba(12,15,35,0.98)", border: "1px solid rgba(139,92,246,0.2)" }}
+          >
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-6 py-4"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <h2 className="font-black text-white text-base flex items-center gap-2">
+                <Settings size={16} className="text-yellow-400" /> Olympiade verwalten
+              </h2>
+              <button
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                onClick={() => setShowManageModal(false)}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              {[
+                { id: "players", label: "Spieler" },
+                { id: "games", label: "Spiele" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  className="flex-1 py-2.5 text-xs font-black uppercase tracking-wider transition-colors"
+                  style={manageTab === tab.id
+                    ? { color: "white", borderBottom: `2px solid ${tab.id === "games" ? "#facc15" : "#8b5cf6"}` }
+                    : { color: "rgba(255,255,255,0.3)" }}
+                  onClick={() => setManageTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-3 max-h-[28rem] overflow-y-auto">
+
+              {/* Players tab */}
+              {manageTab === "players" && (
+                <>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-400 mb-2">
+                    Spieler ({olympic.participants.filter(p => !(olympic.hostParticipates && p.name?.trim().toLowerCase() === (olympic.hostPlayerName || "").trim().toLowerCase())).length})
+                  </p>
+                  {olympic.participants
+                    .filter(p => !(olympic.hostParticipates && p.name?.trim().toLowerCase() === (olympic.hostPlayerName || "").trim().toLowerCase()))
+                    .map((p, i) => {
+                      const gradients = ["from-pink-500 to-purple-600", "from-purple-500 to-blue-600", "from-cyan-500 to-blue-500", "from-green-400 to-teal-500", "from-orange-400 to-pink-500", "from-yellow-400 to-orange-500"];
+                      return (
+                        <div
+                          key={p.name}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                        >
+                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${gradients[i % gradients.length]} flex items-center justify-center font-black text-sm text-white flex-shrink-0`}>
+                            {p.name[0]?.toUpperCase()}
+                          </div>
+                          <span className="flex-1 font-semibold text-white text-sm truncate">{p.name}</span>
+                          {p.name !== participantName && (
+                            <>
+                              <button
+                                className="text-xs px-2 py-1 rounded-lg font-bold transition-all flex-shrink-0"
+                                style={p.role === "co-host"
+                                  ? { background: "rgba(234,179,8,0.15)", color: "#facc15", border: "1px solid rgba(234,179,8,0.35)" }
+                                  : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.12)" }}
+                                onClick={() => coHostToggleCoHost(p.name)}
+                              >
+                                {p.role === "co-host" ? "★ Co-Host" : "☆"}
+                              </button>
+                              <button
+                                className="text-xs px-2 py-1 rounded-lg font-bold flex-shrink-0"
+                                style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.22)" }}
+                                onClick={() => coHostKickPlayer(p.name)}
+                              >
+                                Kick <X size={10} className="inline" />
+                              </button>
+                            </>
+                          )}
+                          {p.name === participantName && (
+                            <span className="text-[9px] font-black text-yellow-400/60">Du</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </>
+              )}
+
+              {/* Games tab */}
+              {manageTab === "games" && (
+                <>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-2">
+                    Spiele ({olympic.games.length})
+                  </p>
+                  {olympic.games.map((g) => {
+                    const isScored = !!olympic.results.find((r) => String(r.gameId) === String(g._id));
+                    return (
+                      <div
+                        key={String(g._id)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                      >
+                        <span className="text-xl flex-shrink-0">{g.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{g.title}</p>
+                          <p className="text-[10px] text-white/35">
+                            {g.mode === "team" ? "Teams" : "FFA"}
+                            {isScored ? " · Bewertet" : ""}
+                          </p>
+                        </div>
+                        {isScored && <Check size={12} className="text-green-400 flex-shrink-0" />}
+                        <button
+                          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-40"
+                          style={{ background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.2)", color: "#f472b6" }}
+                          onClick={() => coHostRemoveGame(String(g._id))}
+                          disabled={gamesSaving}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {olympic.games.length === 0 && (
+                    <p className="text-white/25 text-xs text-center py-4">Keine Spiele</p>
+                  )}
+
+                  {/* Add game form */}
+                  <div
+                    className="rounded-xl p-4 space-y-3 mt-2"
+                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.2)" }}
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-400">
+                      Spiel hinzufügen
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        className="w-14 rounded-lg px-2 py-2 text-center text-xl bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:border-purple-500/50"
+                        value={newGameIcon}
+                        onChange={(e) => setNewGameIcon(e.target.value)}
+                        maxLength={4}
+                        placeholder="🎮"
+                      />
+                      <input
+                        className="flex-1 rounded-lg px-3 py-2 text-sm font-semibold bg-white/[0.06] border border-white/10 text-white placeholder-white/25 focus:outline-none focus:border-purple-500/50"
+                        value={newGameTitle}
+                        onChange={(e) => setNewGameTitle(e.target.value)}
+                        placeholder="Spielname…"
+                        onKeyDown={(e) => e.key === "Enter" && coHostAddGame()}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        style={newGameMode === "ffa"
+                          ? { background: "rgba(236,72,153,0.2)", border: "1px solid rgba(236,72,153,0.4)", color: "#f9a8d4" }
+                          : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)" }}
+                        onClick={() => setNewGameMode("ffa")}
+                      >
+                        FFA
+                      </button>
+                      <button
+                        className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        style={newGameMode === "team"
+                          ? { background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.4)", color: "#c4b5fd" }
+                          : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)" }}
+                        onClick={() => setNewGameMode("team")}
+                      >
+                        Teams
+                      </button>
+                    </div>
+                    <button
+                      className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40"
+                      style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.4), rgba(236,72,153,0.3))", border: "1px solid rgba(139,92,246,0.4)" }}
+                      onClick={coHostAddGame}
+                      disabled={!newGameTitle.trim() || gamesSaving}
+                    >
+                      + Hinzufügen
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pause overlay */}
+      {paused && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+          style={{
+            background: "linear-gradient(165deg, rgba(6,4,26,0.97) 0%, rgba(11,6,48,0.97) 100%)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.15) 0%, transparent 60%)",
+            }}
+          />
+          <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center max-w-xl w-full">
+            <div
+              className="w-20 h-20 rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.4)" }}
+            >
+              <Pause size={36} className="text-purple-300" />
+            </div>
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.35em] text-purple-400 mb-3">
+                Olympiade pausiert
+              </p>
+              <h1 className="text-5xl font-black text-white" style={{ textShadow: "0 0 40px rgba(139,92,246,0.5)" }}>
+                PAUSE
+              </h1>
+              <p className="text-white/40 mt-3 text-sm">Der Host hat die Olympiade kurz pausiert.</p>
+            </div>
+
+            {leaderboard.length > 0 && (
+              <div className="w-full max-w-lg text-left">
+                <Scoreboard
+                  leaderboard={leaderboard}
+                  participants={olympic.participants}
+                  myName={participantName}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

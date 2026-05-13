@@ -367,11 +367,40 @@ router.delete("/:code/results/:gameId", requireHostToken, async (req, res) => {
   }
 });
 
-// PATCH /api/olympics/:code/participants/:userId/role — Update participant role (requires host token)
-router.patch("/:code/participants/:userId/role", requireHostToken, async (req, res) => {
+// PATCH /api/olympics/:code/games — Update games list (requires host token, works during active games)
+router.patch("/:code/games", requireHostToken, async (req, res) => {
   try {
-    const { code, userId } = req.params;
-    const { role } = req.body;
+    const olympic = await Olympic.findOne({ code: req.params.code.toUpperCase() });
+    if (!olympic) return res.status(404).json({ error: "Olympic not found" });
+    if (olympic.hostToken !== req.hostToken)
+      return res.status(403).json({ error: "Invalid host token" });
+
+    const { games } = req.body;
+    if (!Array.isArray(games)) return res.status(400).json({ error: "games must be an array" });
+
+    olympic.games = games;
+    await olympic.save();
+
+    const safe = olympic.toObject();
+    delete safe.hostToken;
+
+    if (global.io) {
+      const leaderboard = computeLeaderboard(safe);
+      global.io.to(req.params.code.toUpperCase()).emit("room-update", { olympic: safe, leaderboard });
+    }
+
+    res.json(safe);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update games" });
+  }
+});
+
+// PATCH /api/olympics/:code/participants/role — Update participant role by name (requires host token)
+router.patch("/:code/participants/role", requireHostToken, async (req, res) => {
+  try {
+    const { code } = req.params;
+    const { name, role } = req.body;
     const hostToken = req.hostToken;
 
     const olympic = await Olympic.findOne({ code: code.toUpperCase() });
@@ -387,9 +416,11 @@ router.patch("/:code/participants/:userId/role", requireHostToken, async (req, r
       return res.status(400).json({ error: "Invalid role" });
     }
 
-    // Update participant role
+    if (!name) return res.status(400).json({ error: "Participant name required" });
+
+    // Update participant role by name
     const participant = olympic.participants.find(
-      (p) => p.userId && p.userId.toString() === userId,
+      (p) => p.name === name,
     );
     if (!participant)
       return res.status(404).json({ error: "Participant not found" });
@@ -406,6 +437,19 @@ router.patch("/:code/participants/:userId/role", requireHostToken, async (req, r
         olympic: safe,
         leaderboard,
       });
+
+      // Grant or revoke hostToken for the co-host's socket
+      const sockets = await global.io.in(code.toUpperCase()).fetchSockets();
+      for (const s of sockets) {
+        if (s.data.name === name && !s.data.isHost) {
+          if (role === "co-host") {
+            s.emit("cohost-token", { hostToken: olympic.hostToken });
+          } else {
+            s.emit("cohost-token", { hostToken: null });
+          }
+          break;
+        }
+      }
     }
 
     const { hostToken: _ht, ...safe } = olympic.toObject();

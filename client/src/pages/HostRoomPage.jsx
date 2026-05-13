@@ -66,6 +66,8 @@ import {
   ArrowUp,
   RotateCcw,
   Lock,
+  Pause,
+  Play,
 } from "lucide-react";
 
 function ManageGameRow({
@@ -169,6 +171,7 @@ export default function HostRoomPage() {
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [librarySearch, setLibrarySearch] = useState("");
   const [tiebreaker, setTiebreaker] = useState(null);
+  const [paused, setPaused] = useState(false);
   const [tiebreakerAnswers, setTiebreakerAnswers] = useState({});
   const [tiebreakerResolved, setTiebreakerResolved] = useState(null);
   const [introOlympic, setIntroOlympic] = useState(null);
@@ -315,20 +318,27 @@ export default function HostRoomPage() {
     });
   }
 
-  async function toggleCoHost(userId) {
-    if (!userId) {
-      alert("Spieler hat keine User ID");
-      return;
+  function togglePause() {
+    const socket = getSocket();
+    if (paused) {
+      socket.emit("resume-olympic", { code: code.toUpperCase(), hostToken });
+      setPaused(false);
+    } else {
+      socket.emit("pause-olympic", { code: code.toUpperCase(), hostToken });
+      setPaused(true);
     }
-    const participant = olympic.participants.find((p) => p.userId === userId);
+  }
+
+  async function toggleCoHost(playerName) {
+    const participant = olympic.participants.find((p) => p.name === playerName);
     if (!participant) return;
 
     const newRole = participant.role === "co-host" ? "player" : "co-host";
 
     try {
       await api.patch(
-        `/olympics/${code.toUpperCase()}/participants/${userId}/role`,
-        { role: newRole },
+        `/olympics/${code.toUpperCase()}/participants/role`,
+        { name: playerName, role: newRole },
       );
       // UI will update automatically via room-update Socket.IO event
     } catch (err) {
@@ -593,23 +603,21 @@ export default function HostRoomPage() {
                       {/* Action buttons on hover */}
                       <div className="absolute -top-1.5 -right-1.5 gap-1 hidden group-hover:flex z-30">
                         {/* Co-Host toggle button */}
-                        {p.userId && (
-                          <button
-                            onClick={() => toggleCoHost(p.userId)}
-                            className={`w-5 h-5 rounded-full text-white text-[10px] font-black flex items-center justify-center shadow-lg transition-colors ${
-                              p.role === "co-host"
-                                ? "bg-yellow-500 hover:bg-yellow-600"
-                                : "bg-gray-600 hover:bg-gray-700"
-                            }`}
-                            title={
-                              p.role === "co-host"
-                                ? "Co-Host entfernen"
-                                : "Co-Host machen"
-                            }
-                          >
-                            {p.role === "co-host" ? "★" : "☆"}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => toggleCoHost(p.name)}
+                          className={`w-5 h-5 rounded-full text-white text-[10px] font-black flex items-center justify-center shadow-lg transition-colors ${
+                            p.role === "co-host"
+                              ? "bg-yellow-500 hover:bg-yellow-600"
+                              : "bg-gray-600 hover:bg-gray-700"
+                          }`}
+                          title={
+                            p.role === "co-host"
+                              ? "Co-Host entfernen"
+                              : "Co-Host machen"
+                          }
+                        >
+                          {p.role === "co-host" ? "★" : "☆"}
+                        </button>
                         {/* Kick button */}
                         <button
                           className="w-5 h-5 rounded-full bg-pink-500 text-white text-[10px] font-black items-center justify-center flex shadow-lg hover:bg-pink-600 transition-colors"
@@ -842,6 +850,18 @@ export default function HostRoomPage() {
                 }}
               >
                 <Settings size={14} /> Verwalten
+              </button>
+              <button
+                className="text-sm !py-2 !px-4 flex items-center gap-2 rounded-xl font-bold transition-all"
+                style={
+                  paused
+                    ? { background: "rgba(234,179,8,0.2)", border: "1px solid rgba(234,179,8,0.45)", color: "#facc15" }
+                    : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }
+                }
+                onClick={togglePause}
+                title={paused ? "Pause beenden" : "Olympiade pausieren"}
+              >
+                {paused ? <><Play size={14} /> Weiter</> : <><Pause size={14} /> Pause</>}
               </button>
               <button
                 className="btn-primary text-sm !py-2 !px-4 flex items-center gap-2"
@@ -1291,6 +1311,18 @@ export default function HostRoomPage() {
                                 <span className="flex-1 font-semibold text-white text-sm truncate">
                                   {p.name}
                                 </span>
+                                <button
+                                  className="text-xs px-2 py-1 rounded-lg font-bold transition-all flex-shrink-0"
+                                  style={
+                                    p.role === "co-host"
+                                      ? { background: "rgba(234,179,8,0.15)", color: "#facc15", border: "1px solid rgba(234,179,8,0.35)" }
+                                      : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.12)" }
+                                  }
+                                  onClick={() => toggleCoHost(p.name)}
+                                  title={p.role === "co-host" ? "Co-Host entfernen" : "Co-Host machen"}
+                                >
+                                  {p.role === "co-host" ? "★ Co-Host" : "☆"}
+                                </button>
                                 <button
                                   className="text-xs px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0"
                                   style={{

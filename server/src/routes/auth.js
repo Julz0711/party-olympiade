@@ -23,6 +23,7 @@ function safeUser(user) {
     cardImage: user.cardImage ?? null,
     bio: user.bio ?? "",
     role: user.role ?? 'user',
+    profilePicture: user.profilePicture ?? 'Charakter_1',
   };
 }
 
@@ -119,7 +120,7 @@ router.patch('/profile', async (req, res) => {
     const user = await User.findById(payload.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const { username, avatarColor, playerCard, cardImage, bio } = req.body;
+    const { username, avatarColor, playerCard, cardImage, bio, profilePicture } = req.body;
 
     if (username !== undefined) {
       const trimmed = String(username).trim().slice(0, 30);
@@ -164,6 +165,12 @@ router.patch('/profile', async (req, res) => {
         }
         user.cardImage = cardImage;
       }
+    }
+    if (profilePicture !== undefined) {
+      if (typeof profilePicture !== 'string' || !/^Charakter_([1-9]|[12]\d|30)$/.test(profilePicture)) {
+        return res.status(400).json({ error: 'Invalid profilePicture' });
+      }
+      user.profilePicture = profilePicture;
     }
 
     await user.save();

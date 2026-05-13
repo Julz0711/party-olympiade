@@ -136,6 +136,14 @@ export function initSocket(io) {
             socket.emit("room-update", { olympic: safeOlympic, leaderboard });
           }
 
+          // Grant hostToken to co-hosts so they can use host socket events
+          if (!isHost && name) {
+            const p = olympic.participants.find((p) => p.name === name.trim());
+            if (p?.role === "co-host") {
+              socket.emit("cohost-token", { hostToken: olympic.hostToken });
+            }
+          }
+
           console.log(`${name || "Anonymous"} joined room ${upperCode}`);
         } catch (err) {
           console.error("join-room error:", err);
@@ -705,6 +713,22 @@ export function initSocket(io) {
         console.error("kick-player error:", err);
         socket.emit("error", { message: "Server error" });
       }
+    });
+
+    /**
+     * pause-olympic — host pauses the event for all participants
+     * payload: { code, hostToken }
+     */
+    socket.on("pause-olympic", ({ code }) => {
+      io.to(code?.toUpperCase()).emit("olympic-paused");
+    });
+
+    /**
+     * resume-olympic — host resumes the event
+     * payload: { code, hostToken }
+     */
+    socket.on("resume-olympic", ({ code }) => {
+      io.to(code?.toUpperCase()).emit("olympic-resumed");
     });
   });
 }

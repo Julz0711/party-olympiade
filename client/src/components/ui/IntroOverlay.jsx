@@ -1,14 +1,56 @@
 import { useState, useEffect } from "react";
-import { ChevronRight, ChevronLeft, X, Crown, Zap, Trophy } from "lucide-react";
+import { ChevronRight, ChevronLeft, X, Crown, Trophy, TrendingUp, Medal, Flag } from "lucide-react";
 import { AVATAR_GRADIENTS } from "../Header.jsx";
 import { getSocket } from "../../socket/socket.js";
 import CompactPlayerCard from "./CompactPlayerCard.jsx";
 
-const SCORING_LABELS = {
-  linear: "Linear (N+1 bis 1)",
-  top3: "Top 3 (3-2-1)",
-  f1: "Formel 1 (10-8-6-5…)",
-};
+const SCORING_MODES = [
+  {
+    id: "linear",
+    title: "Linear",
+    subtitle: "Klassisch & fair",
+    Icon: TrendingUp,
+    accent: "#22d3ee",
+    desc: "Mehr Spieler = mehr Punkte. Bei N Spielern bekommt P1 = N, P2 = N−1, … P_letzte = 1.",
+    example: [
+      { place: 1, points: 5 },
+      { place: 2, points: 4 },
+      { place: 3, points: 3 },
+      { place: 4, points: 2 },
+      { place: 5, points: 1 },
+    ],
+  },
+  {
+    id: "top3",
+    title: "Top 3",
+    subtitle: "Nur das Podium zählt",
+    Icon: Medal,
+    accent: "#facc15",
+    desc: "Punkte gibt's nur für die ersten 3 Plätze. Schnell, brutal, perfekt für lange Olympiaden.",
+    example: [
+      { place: 1, points: 3 },
+      { place: 2, points: 2 },
+      { place: 3, points: 1 },
+      { place: 4, points: 0 },
+      { place: 5, points: 0 },
+    ],
+  },
+  {
+    id: "f1",
+    title: "Formel 1",
+    subtitle: "Wie der Motorsport",
+    Icon: Flag,
+    accent: "#ec4899",
+    desc: "Klassische F1-Verteilung: 10-8-6-5-4-3-2-1. Belohnt konstante Performance.",
+    example: [
+      { place: 1, points: 10 },
+      { place: 2, points: 8 },
+      { place: 3, points: 6 },
+      { place: 4, points: 5 },
+      { place: 5, points: 4 },
+    ],
+  },
+];
 
 function Slide({ olympic, slideIndex, totalSlides }) {
   const participants = olympic.participants || [];
@@ -98,51 +140,124 @@ function Slide({ olympic, slideIndex, totalSlides }) {
   if (slideIndex === 3) {
     const rules = olympic.extraRules || {};
     const activeRules = [
-      rules.comebackPenalty && "Comeback-Malus für Gewinner",
+      rules.comebackPenalty && "Comeback-Malus",
       rules.lastPlaceBonus && "Letzter-Platz-Bonus",
       rules.winStreakBonus && "Win-Streak-Bonus",
       rules.finalDoublePoints && "Doppelte Punkte im Finale",
     ].filter(Boolean);
 
+    const activeMode = SCORING_MODES.find((m) => m.id === olympic.scoringMode) || SCORING_MODES[0];
+    const placeColors = ["#facc15", "#cbd5e1", "#fb923c", "rgba(255,255,255,0.35)", "rgba(255,255,255,0.35)"];
+    const maxPts = activeMode.example[0].points || 1;
+
     return (
-      <div className="flex flex-col items-center justify-center h-full px-8 gap-6">
-        <div className="text-center">
-          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-green-400 mb-2">
+      <div className="flex flex-col items-center w-full h-full px-6 pt-2 pb-4 gap-4 overflow-y-auto">
+        <div className="text-center flex-shrink-0">
+          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-green-400 mb-1">
             Die Regeln
           </p>
-          <Zap size={32} className="text-green-400 mx-auto mb-4" />
         </div>
+
+        {/* Mode tabs */}
+        <div className="flex gap-2 flex-shrink-0">
+          {SCORING_MODES.map((mode) => {
+            const isActive = mode.id === olympic.scoringMode;
+            return (
+              <div
+                key={mode.id}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{
+                  background: isActive ? `${mode.accent}20` : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${isActive ? `${mode.accent}50` : "rgba(255,255,255,0.1)"}`,
+                  color: isActive ? mode.accent : "rgba(255,255,255,0.35)",
+                }}
+              >
+                {mode.title}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Active mode card */}
         <div
-          className="w-full max-w-sm rounded-2xl p-5 space-y-3"
+          className="w-full max-w-sm rounded-2xl p-4 flex-shrink-0"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: `${activeMode.accent}08`,
+            border: `1px solid ${activeMode.accent}25`,
           }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-white/40 uppercase tracking-wider font-bold">
-              Wertung
-            </span>
-            <span className="text-sm font-bold text-white">
-              {SCORING_LABELS[olympic.scoringMode] || olympic.scoringMode}
-            </span>
+          <div className="flex items-center gap-2 mb-3">
+            <activeMode.Icon size={16} style={{ color: activeMode.accent }} />
+            <div>
+              <p className="text-sm font-black text-white leading-tight">{activeMode.title}</p>
+              <p className="text-[10px]" style={{ color: `${activeMode.accent}99` }}>{activeMode.subtitle}</p>
+            </div>
           </div>
-          {activeRules.length > 0 && (
-            <div className="space-y-1.5 pt-2 border-t border-white/5">
-              {activeRules.map((r) => (
-                <div key={r} className="flex items-center gap-2">
-                  <span className="text-green-400 text-xs">✦</span>
-                  <span className="text-sm text-white/70">{r}</span>
+
+          <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Beispiel · 5 Spieler
+          </p>
+
+          <div className="space-y-1.5">
+            {activeMode.example.map((row, i) => {
+              const widthPct = row.points > 0 ? Math.max(6, (row.points / maxPts) * 100) : 0;
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center font-black text-[10px] flex-shrink-0"
+                    style={{
+                      background: `${placeColors[i]}18`,
+                      color: placeColors[i],
+                      border: `1px solid ${placeColors[i]}33`,
+                    }}
+                  >
+                    {row.place}
+                  </div>
+                  <span className="text-[10px] font-semibold text-white/50 w-12 flex-shrink-0">
+                    Spieler {row.place}
+                  </span>
+                  <div className="flex-1 h-1.5 rounded-full bg-white/[0.05] relative overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${widthPct}%`,
+                        background: `linear-gradient(90deg, ${activeMode.accent}, ${activeMode.accent}80)`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="font-black text-xs tabular-nums w-10 text-right flex-shrink-0"
+                    style={{ color: row.points > 0 ? activeMode.accent : "rgba(255,255,255,0.2)" }}
+                  >
+                    {row.points} Pkt
+                  </span>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bonus rules */}
+        {activeRules.length > 0 && (
+          <div className="w-full max-w-sm flex-shrink-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Bonus-Regeln aktiv</p>
+            <div className="flex flex-wrap gap-1.5">
+              {activeRules.map((r) => (
+                <span
+                  key={r}
+                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                  style={{
+                    background: "rgba(34,211,238,0.1)",
+                    border: "1px solid rgba(34,211,238,0.25)",
+                    color: "#22d3ee",
+                  }}
+                >
+                  ✦ {r}
+                </span>
               ))}
             </div>
-          )}
-          {activeRules.length === 0 && (
-            <p className="text-sm text-white/40 pt-2 border-t border-white/5">
-              Standard-Regeln
-            </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }
